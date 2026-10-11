@@ -1,4 +1,4 @@
-name: Exact Source 3802718
+name: Repaired Exact Source 4d5d446
 on:
   push:
     branches: ['ci/exact-source-3802718-20261012']
@@ -11,16 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 3802718424b8fe3be50c35c79ca8c8d34e652532
+          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
           fetch-depth: 0
           persist-credentials: false
       - name: Verify exact source and ancestry
         run: |
           mkdir -p /tmp/exact-source-receipts
-          test "$(git rev-parse HEAD)" = "3802718424b8fe3be50c35c79ca8c8d34e652532"
+          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
           git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
           git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
           git status --porcelain | tee /tmp/exact-source-receipts/status.txt
+          git diff --name-only 3802718424b8fe3be50c35c79ca8c8d34e652532 HEAD | tee /tmp/exact-source-receipts/change-set.txt
+          git ls-tree HEAD src/store.mjs tests/json-store-save-race.test.mjs | tee /tmp/exact-source-receipts/repair-blobs.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -32,15 +34,23 @@ jobs:
           npm ci 2>&1 | tee /tmp/exact-source-receipts/install.log
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Run real JsonStore adverse regressions
+        run: |
+          set -o pipefail
+          node --test tests/json-store-save-race.test.mjs 2>&1 | tee /tmp/exact-source-receipts/jsonstore-regressions.log
       - name: Run deterministic exact-source gate
         run: |
           set -o pipefail
+          set +e
           npm run check 2>&1 | tee /tmp/exact-source-receipts/deterministic.log
+          result=${PIPESTATUS[0]}
+          echo "$result" > /tmp/exact-source-receipts/deterministic-exit-code.txt
+          exit "$result"
       - name: Preserve exact-source evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exact-source-deterministic-3802718424b8fe3be50c35c79ca8c8d34e652532
+          name: exact-source-deterministic-4d5d4469dddf349797ebdacf5ba106fd9843fbce
           path: /tmp/exact-source-receipts
           retention-days: 30
   browser:
@@ -49,16 +59,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 3802718424b8fe3be50c35c79ca8c8d34e652532
+          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
           fetch-depth: 0
           persist-credentials: false
       - name: Verify exact source and ancestry
         run: |
           mkdir -p /tmp/exact-source-receipts
-          test "$(git rev-parse HEAD)" = "3802718424b8fe3be50c35c79ca8c8d34e652532"
+          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
           git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
           git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
           git status --porcelain | tee /tmp/exact-source-receipts/status.txt
+          git diff --name-only 3802718424b8fe3be50c35c79ca8c8d34e652532 HEAD | tee /tmp/exact-source-receipts/change-set.txt
+          git ls-tree HEAD src/store.mjs tests/json-store-save-race.test.mjs | tee /tmp/exact-source-receipts/repair-blobs.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -75,12 +87,16 @@ jobs:
       - name: Run browser exact-source gate
         run: |
           set -o pipefail
+          set +e
           npm run test:browser 2>&1 | tee /tmp/exact-source-receipts/browser.log
+          result=${PIPESTATUS[0]}
+          echo "$result" > /tmp/exact-source-receipts/browser-exit-code.txt
+          exit "$result"
       - name: Preserve exact-source evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exact-source-browser-3802718424b8fe3be50c35c79ca8c8d34e652532
+          name: exact-source-browser-4d5d4469dddf349797ebdacf5ba106fd9843fbce
           path: /tmp/exact-source-receipts
           retention-days: 30
   postgres:
@@ -103,16 +119,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 3802718424b8fe3be50c35c79ca8c8d34e652532
+          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
           fetch-depth: 0
           persist-credentials: false
       - name: Verify exact source and ancestry
         run: |
           mkdir -p /tmp/exact-source-receipts
-          test "$(git rev-parse HEAD)" = "3802718424b8fe3be50c35c79ca8c8d34e652532"
+          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
           git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
           git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
           git status --porcelain | tee /tmp/exact-source-receipts/status.txt
+          git diff --name-only 3802718424b8fe3be50c35c79ca8c8d34e652532 HEAD | tee /tmp/exact-source-receipts/change-set.txt
+          git ls-tree HEAD src/store.mjs tests/json-store-save-race.test.mjs | tee /tmp/exact-source-receipts/repair-blobs.txt
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -127,13 +145,17 @@ jobs:
       - name: Run postgres exact-source gate
         run: |
           set -o pipefail
+          set +e
           npm run test:postgres-real 2>&1 | tee /tmp/exact-source-receipts/postgres.log
+          result=${PIPESTATUS[0]}
+          echo "$result" > /tmp/exact-source-receipts/postgres-exit-code.txt
+          exit "$result"
         env:
           OMNIA_V9_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/uberbond
       - name: Preserve exact-source evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exact-source-postgres-3802718424b8fe3be50c35c79ca8c8d34e652532
+          name: exact-source-postgres-4d5d4469dddf349797ebdacf5ba106fd9843fbce
           path: /tmp/exact-source-receipts
           retention-days: 30
