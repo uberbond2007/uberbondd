@@ -1,4 +1,4 @@
-name: Repaired Exact Source 4d5d446
+name: JsonStore V6 Exact Acceptance a8900f9
 on:
   push:
     branches: ['ci/exact-source-3802718-20261012']
@@ -11,13 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          ref: a8900f9d3d01a0b2ea87253bd354c44559fd6cff
           fetch-depth: 0
           persist-credentials: false
       - name: Verify exact source and ancestry
         run: |
           mkdir -p /tmp/exact-source-receipts
-          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
+          test "$(git rev-parse HEAD)" = "a8900f9d3d01a0b2ea87253bd354c44559fd6cff"
           git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
           git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
           git status --porcelain | tee /tmp/exact-source-receipts/status.txt
@@ -37,7 +37,7 @@ jobs:
       - name: Run real JsonStore adverse regressions
         run: |
           set -o pipefail
-          node --test tests/json-store-save-race.test.mjs 2>&1 | tee /tmp/exact-source-receipts/jsonstore-regressions.log
+          node --test tests/json-store-save-race.test.mjs tests/canon-freshness.test.mjs 2>&1 | tee /tmp/exact-source-receipts/jsonstore-regressions.log
       - name: Run deterministic exact-source gate
         run: |
           set -o pipefail
@@ -50,7 +50,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exact-source-deterministic-4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          name: exact-source-deterministic-a8900f9d3d01a0b2ea87253bd354c44559fd6cff
           path: /tmp/exact-source-receipts
           retention-days: 30
   browser:
@@ -59,13 +59,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          ref: a8900f9d3d01a0b2ea87253bd354c44559fd6cff
           fetch-depth: 0
           persist-credentials: false
       - name: Verify exact source and ancestry
         run: |
           mkdir -p /tmp/exact-source-receipts
-          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
+          test "$(git rev-parse HEAD)" = "a8900f9d3d01a0b2ea87253bd354c44559fd6cff"
           git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
           git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
           git status --porcelain | tee /tmp/exact-source-receipts/status.txt
@@ -96,7 +96,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exact-source-browser-4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          name: exact-source-browser-a8900f9d3d01a0b2ea87253bd354c44559fd6cff
           path: /tmp/exact-source-receipts
           retention-days: 30
   postgres:
@@ -119,13 +119,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          ref: a8900f9d3d01a0b2ea87253bd354c44559fd6cff
           fetch-depth: 0
           persist-credentials: false
       - name: Verify exact source and ancestry
         run: |
           mkdir -p /tmp/exact-source-receipts
-          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
+          test "$(git rev-parse HEAD)" = "a8900f9d3d01a0b2ea87253bd354c44559fd6cff"
           git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
           git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
           git status --porcelain | tee /tmp/exact-source-receipts/status.txt
@@ -156,6 +156,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: exact-source-postgres-4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          name: exact-source-postgres-a8900f9d3d01a0b2ea87253bd354c44559fd6cff
           path: /tmp/exact-source-receipts
           retention-days: 30
