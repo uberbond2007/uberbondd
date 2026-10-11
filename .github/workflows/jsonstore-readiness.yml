@@ -1,0 +1,37 @@
+name: JsonStore Canonical Readiness
+on:
+  push:
+    branches: ['ci/jsonstore-readiness-20261012']
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify source and generate through canonical command
+        run: |
+          test "$(git rev-parse HEAD)" = "4d5d4469dddf349797ebdacf5ba106fd9843fbce"
+          git status --porcelain
+          npm run readiness
+          mkdir -p /tmp/readiness-receipt
+          cp docs/CURRENT_SYSTEM_STATE.md /tmp/readiness-receipt/CURRENT_SYSTEM_STATE.md
+          cp artifacts/system-readiness.json /tmp/readiness-receipt/system-readiness.json
+          git diff --binary > /tmp/readiness-receipt/generated.patch
+          git rev-parse HEAD HEAD^{tree} > /tmp/readiness-receipt/source.txt
+          sha256sum /tmp/readiness-receipt/*
+        env:
+          UBERBOND_CANONICAL_BRANCH: fix/jsonstore-v6-ci-20261012
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jsonstore-canonical-readiness-4d5d4469dddf349797ebdacf5ba106fd9843fbce
+          path: /tmp/readiness-receipt
+          retention-days: 30
