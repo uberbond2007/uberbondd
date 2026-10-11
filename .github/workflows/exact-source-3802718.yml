@@ -1,0 +1,139 @@
+name: Exact Source 3802718
+on:
+  push:
+    branches: ['ci/exact-source-3802718-20261012']
+permissions:
+  contents: read
+jobs:
+  deterministic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3802718424b8fe3be50c35c79ca8c8d34e652532
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact source and ancestry
+        run: |
+          mkdir -p /tmp/exact-source-receipts
+          test "$(git rev-parse HEAD)" = "3802718424b8fe3be50c35c79ca8c8d34e652532"
+          git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
+          git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
+          git status --porcelain | tee /tmp/exact-source-receipts/status.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: |
+          set -o pipefail
+          node --version | tee /tmp/exact-source-receipts/node.txt
+          npm ci 2>&1 | tee /tmp/exact-source-receipts/install.log
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Run deterministic exact-source gate
+        run: |
+          set -o pipefail
+          npm run check 2>&1 | tee /tmp/exact-source-receipts/deterministic.log
+      - name: Preserve exact-source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-source-deterministic-3802718424b8fe3be50c35c79ca8c8d34e652532
+          path: /tmp/exact-source-receipts
+          retention-days: 30
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3802718424b8fe3be50c35c79ca8c8d34e652532
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact source and ancestry
+        run: |
+          mkdir -p /tmp/exact-source-receipts
+          test "$(git rev-parse HEAD)" = "3802718424b8fe3be50c35c79ca8c8d34e652532"
+          git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
+          git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
+          git status --porcelain | tee /tmp/exact-source-receipts/status.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: |
+          set -o pipefail
+          node --version | tee /tmp/exact-source-receipts/node.txt
+          npm ci 2>&1 | tee /tmp/exact-source-receipts/install.log
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Install real Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser exact-source gate
+        run: |
+          set -o pipefail
+          npm run test:browser 2>&1 | tee /tmp/exact-source-receipts/browser.log
+      - name: Preserve exact-source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-source-browser-3802718424b8fe3be50c35c79ca8c8d34e652532
+          path: /tmp/exact-source-receipts
+          retention-days: 30
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: uberbond
+        options: >-
+          --health-cmd "pg_isready -U postgres -d uberbond"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3802718424b8fe3be50c35c79ca8c8d34e652532
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact source and ancestry
+        run: |
+          mkdir -p /tmp/exact-source-receipts
+          test "$(git rev-parse HEAD)" = "3802718424b8fe3be50c35c79ca8c8d34e652532"
+          git merge-base --is-ancestor c09537543ee438941cdee0e525519042e292b39f HEAD
+          git rev-parse HEAD HEAD^{tree} | tee /tmp/exact-source-receipts/source.txt
+          git status --porcelain | tee /tmp/exact-source-receipts/status.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: |
+          set -o pipefail
+          node --version | tee /tmp/exact-source-receipts/node.txt
+          npm ci 2>&1 | tee /tmp/exact-source-receipts/install.log
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Run postgres exact-source gate
+        run: |
+          set -o pipefail
+          npm run test:postgres-real 2>&1 | tee /tmp/exact-source-receipts/postgres.log
+        env:
+          OMNIA_V9_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/uberbond
+      - name: Preserve exact-source evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-source-postgres-3802718424b8fe3be50c35c79ca8c8d34e652532
+          path: /tmp/exact-source-receipts
+          retention-days: 30
