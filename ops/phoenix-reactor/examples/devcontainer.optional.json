@@ -1,0 +1,7 @@
+{
+  "_comment": "OPTIONAL. Not active: copy to .devcontainer/devcontainer.json only if you accept a Codespace rebuild. Without it, the ~/.bashrc hook installed by `phoenix install` re-ensures the stack whenever any terminal opens.",
+  "name": "uberbond",
+  "postStartCommand": "bash ops/phoenix-reactor/bin/phoenix install && bash ops/phoenix-reactor/bin/phoenix ensure --quiet",
+  "forwardPorts": [6080],
+  "portsAttributes": { "6080": { "label": "UberBond desktop (noVNC)", "visibility": "private", "onAutoForward": "silent" } }
+}

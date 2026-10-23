@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# phoenix -- Codespace recovery CLI (desktop, Claude Code login, diagnostics, supervision).
+# Idempotent. Never prints secrets. Usage: phoenix <install|ensure|stop|status|desktop|doctor|bench|auth-start|auth-submit|auth-status|auth-token|hook>
+set -uo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LIB="$ROOT/lib"
+STATE="${PHOENIX_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/uberbond-phoenix}"
+CONF="${PHOENIX_CONF:-${XDG_CONFIG_HOME:-$HOME/.config}/uberbond-phoenix}"
+export PHOENIX_STATE="$STATE" PHOENIX_CONF="$CONF"
+WEB_PORT="${PHOENIX_WEB_PORT:-6080}"
+AUTH_SESSION="${PHOENIX_AUTH_SESSION:-phoenix-auth}"
+mkdir -p "$STATE/logs" "$CONF/services.d"
+chmod 700 "$CONF" 2>/dev/null || true
+
+say() { printf '%s\n' "$*"; }
+have() { command -v "$1" >/dev/null 2>&1; }
+SUDO=""; [ "$(id -u)" -ne 0 ] && have sudo && SUDO="sudo"
+
+supervisor_pid() {
+  local p; p="$(cat "$STATE/supervisor.lock" 2>/dev/null || true)"
+  [ -n "$p" ] && kill -0 "$p" 2>/dev/null && tr '\0' ' ' </proc/"$p"/cmdline 2>/dev/null | grep -q supervisor.py && echo "$p"
+}
+
+cmd_install() {
+  local pkgs="novnc websockify tigervnc-standalone-server tigervnc-tools openbox tmux curl python3"
+  local need=0
+  for b in Xtigervnc vncpasswd openbox websockify tmux; do have "$b" || need=1; done
+  [ -f /usr/share/novnc/vnc.html ] || need=1
+  if [ "$need" = 1 ]; then
+    say "installing: $pkgs"
+    $SUDO apt-get update -qq && DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y --no-install-recommends $pkgs >"$STATE/logs/install.log" 2>&1 \
+      || { say "apt install failed; see $STATE/logs/install.log"; return 1; }
+  else
+    say "desktop packages already present"
+  fi
+  if [ ! -s "$CONF/vnc.passwd" ]; then
+    local pw; pw="$(head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 12)"
+    printf '%s' "$pw" | vncpasswd -f >"$CONF/vnc.passwd" && chmod 600 "$CONF/vnc.passwd"
+    printf '%s\n' "$pw" >"$CONF/vnc.password.txt"; chmod 600 "$CONF/vnc.password.txt"
+    say "VNC password generated (read it once with: cat $CONF/vnc.password.txt)"
+  fi
+  [ -f "$CONF/prefer-subscription" ] || { : >"$CONF/prefer-subscription"; say "subscription-only mode on (API-billing env vars are neutralised in new shells)"; }
+  cmd_hook
+  say "install complete"
+}
+
+cmd_hook() {
+  local rc="$HOME/.bashrc" begin="# >>> uberbond-phoenix >>>" end="# <<< uberbond-phoenix <<<"
+  touch "$rc"
+  if grep -qF "$begin" "$rc"; then
+    sed -i "/$begin/,/$end/d" "$rc"
+  fi
+  cat >>"$rc" <<HOOK
+$begin
+export PATH="$ROOT/bin:\$PATH"
+if [ -f "$CONF/prefer-subscription" ]; then unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN; fi
+[ -f "$CONF/claude-oauth.env" ] && . "$CONF/claude-oauth.env"
+case \$- in *i*) ( "$ROOT/bin/phoenix" ensure --quiet >/dev/null 2>&1 & ) ;; esac
+$end
+HOOK
+  say "shell hook installed in $rc"
+}
+
+cmd_ensure() {
+  local quiet=0; [ "${1:-}" = "--quiet" ] && quiet=1
+  if p="$(supervisor_pid)"; then [ $quiet = 1 ] || say "supervisor running (pid $p)"; return 0; fi
+  [ -s "$CONF/vnc.passwd" ] || { say "not installed; run: phoenix install"; return 1; }
+  nohup setsid python3 "$LIB/supervisor.py" >>"$STATE/logs/supervisor.stdout" 2>&1 </dev/null &
+  sleep 1
+  [ $quiet = 1 ] || say "supervisor started"
+}
+
+cmd_stop() {
+  if p="$(supervisor_pid)"; then kill -TERM "$p"; for _ in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$p" 2>/dev/null || break; sleep 0.5; done; say "stopped"; else say "not running"; fi
+}
+
+cmd_status() {
+  if p="$(supervisor_pid)"; then say "supervisor: running pid=$p"; else say "supervisor: NOT running"; fi
+  [ -f "$STATE/status.json" ] && python3 -m json.tool "$STATE/status.json" 2>/dev/null
+  say "healthz: $(curl -s -m 3 -o /dev/null -w '%{http_code}' "http://127.0.0.1:$WEB_PORT/healthz" 2>/dev/null)"
+}
+
+cmd_desktop() {
+  if [ -n "${CODESPACE_NAME:-}" ]; then
+    local dom="${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
+    say "Desktop URL: https://${CODESPACE_NAME}-${WEB_PORT}.${dom}/"
+    have gh && gh codespace ports visibility "${WEB_PORT}:private" -c "$CODESPACE_NAME" >/dev/null 2>&1 \
+      && say "port ${WEB_PORT} visibility: private" || say "could not set port visibility via gh; in VS Code Ports panel make sure ${WEB_PORT} is Private"
+  else
+    say "Desktop URL (local): http://127.0.0.1:${WEB_PORT}/"
+  fi
+  say "VNC password: cat $CONF/vnc.password.txt"
+}
+
+# ---------- Claude Code subscription login ----------
+cmd_auth_start() {
+  have claude || { say "claude not installed (npm i -g @anthropic-ai/claude-code or curl -fsSL https://claude.ai/install.sh | bash)"; return 1; }
+  have tmux || { say "tmux required: phoenix install"; return 1; }
+  local c; c="$(node "$LIB/claude-auth.mjs" conflicts)"
+  [ -n "$c" ] && say "WARNING: these variables override subscription login and are removed for this attempt: $c"
+  tmux kill-session -t "$AUTH_SESSION" 2>/dev/null
+  # A fresh process = fresh PKCE challenge. Any URL/code from an earlier attempt is dead, so we never reuse one.
+  tmux new-session -d -s "$AUTH_SESSION" -x 500 -y 50 \
+    "env -u ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN -u ANTHROPIC_BASE_URL -u CLAUDE_CODE_OAUTH_TOKEN -u CLAUDE_CODE_USE_BEDROCK -u CLAUDE_CODE_USE_VERTEX -u CLAUDE_CODE_USE_FOUNDRY BROWSER=/bin/true claude auth login --claudeai; sleep 600"
+  local url=""
+  for _ in $(seq 1 30); do
+    url="$(tmux capture-pane -t "$AUTH_SESSION" -p -J 2>/dev/null | node "$LIB/claude-auth.mjs" url 2>/dev/null)" && [ -n "$url" ] && break
+    sleep 1
+  done
+  [ -n "$url" ] || { say "no login URL appeared; pane says:"; tmux capture-pane -t "$AUTH_SESSION" -p -J | tail -8; return 1; }
+  printf '%s\n' "$url" >"$STATE/login-url.txt"; chmod 600 "$STATE/login-url.txt"
+  say "1) Open this single-line URL in Safari (signed in to your Claude Pro account):"
+  say ""
+  say "$url"
+  say ""
+  say "2) Approve, then copy the code shown on the page."
+  say "3) Run:  phoenix auth-submit    (paste the code when asked)   -- keep this Codespace awake meanwhile."
+}
+
+cmd_auth_submit() {
+  tmux has-session -t "$AUTH_SESSION" 2>/dev/null || { say "no pending login; run: phoenix auth-start"; return 1; }
+  local raw code
+  if [ -n "${1:-}" ]; then raw="$*"; else read -r -p "Paste code: " raw; fi
+  code="$(printf '%s' "$raw" | node "$LIB/claude-auth.mjs" code)" || {
+    say "code rejected locally: $(printf '%s' "$raw" | node "$LIB/claude-auth.mjs" code 2>&1 >/dev/null)"; return 1; }
+  tmux send-keys -t "$AUTH_SESSION" -l "$code"; tmux send-keys -t "$AUTH_SESSION" Enter
+  for _ in $(seq 1 40); do
+    if claude auth status >/dev/null 2>&1; then
+      tmux kill-session -t "$AUTH_SESSION" 2>/dev/null
+      say "login accepted"; cmd_auth_status; return $?
+    fi
+    sleep 1
+  done
+  say "not logged in after 40s. Pane output:"; tmux capture-pane -t "$AUTH_SESSION" -p -J | grep -v '^\s*$' | tail -6
+  say "If it says invalid/expired: run phoenix auth-start again (old URLs/codes can never be reused)."
+  return 1
+}
+
+cmd_auth_status() {
+  local conflicts; conflicts="$(node "$LIB/claude-auth.mjs" conflicts)"
+  [ -n "$conflicts" ] && say "env overrides present (outrank subscription): $conflicts"
+  claude auth status --text; local rc=$?
+  say "auth status exit=$rc"
+  if [ "$rc" = 0 ] && [ "${1:-}" = "--verify" ]; then
+    # `auth status` can say logged-in while API calls 401 (reported for setup-token); prove with one real call.
+    if out="$(timeout 90 claude -p "reply with the single word ok" 2>&1)"; then say "live call: $(printf '%s' "$out" | head -c 80)"; else say "live call FAILED: $(printf '%s' "$out" | head -c 200)"; return 1; fi
+  fi
+  return $rc
+}
+
+cmd_auth_token() {
+  # Fallback: token made by `claude setup-token` on any device with a working browser (Mac/PC/phone terminal).
+  say "Paste the token from 'claude setup-token' (input hidden):"
+  local t; read -r -s t; echo
+  [ "${#t}" -ge 40 ] || { say "too short to be a token"; return 1; }
+  umask 077; printf 'export CLAUDE_CODE_OAUTH_TOKEN=%q\n' "$t" >"$CONF/claude-oauth.env"
+  say "saved to $CONF/claude-oauth.env (0600); open a new shell, then: phoenix auth-status --verify"
+  say "limit (documented): token cannot start Remote Control sessions or fetch claude.ai connectors."
+}
+
+# ---------- diagnostics ----------
+cmd_doctor() {
+  say "== host"; say "date: $(date -u +%FT%TZ)  codespace: ${CODESPACE_NAME:-no}  cpus: $(nproc)  load: $(cut -d' ' -f1-3 /proc/loadavg)"
+  free -m | awk 'NR<=2'; df -h "$HOME" | tail -1
+  say "== top memory consumers"; ps -eo rss,pcpu,comm --sort=-rss | head -9
+  say "== duplicate display/vnc processes (should be <=1 each)"
+  for n in Xtigervnc Xvfb Xvnc x11vnc websockify openbox; do c="$(pgrep -xc "$n" 2>/dev/null)"; say "$n: ${c:-0}"; done
+  say "== claude"; if have claude; then say "path: $(command -v claude) version: $(claude --version 2>&1)"; say "overrides: $(node "$LIB/claude-auth.mjs" conflicts)"; claude auth status --text 2>&1 | head -5; else say "claude: NOT INSTALLED"; fi
+  say "== supervisor"; cmd_status
+  say "== browser sandbox (Chat On Steroids / Chromium)"
+  if unshare -U true 2>/dev/null; then say "unprivileged user namespaces: OK"; else say "unprivileged user namespaces: BLOCKED -> Chromium needs --no-sandbox or a relaxed userns policy (security tradeoff, isolated Codespace only)"; fi
+  for b in $(ls "$HOME"/.cache/ms-playwright/*/chrome-linux*/chrome /usr/bin/chromium* /usr/bin/google-chrome* 2>/dev/null | head -4); do
+    miss="$(ldd "$b" 2>/dev/null | grep 'not found' | tr -s ' ' | head -5)"
+    say "$b: ${miss:-all shared libraries resolve}"
+  done
+  ldconfig -p 2>/dev/null | grep -q 'libstdc++.so.6' && say "libstdc++.so.6: present" || say "libstdc++.so.6: MISSING (apt-get install libstdc++6)"
+  say "== extra services configured"; ls "$CONF/services.d" 2>/dev/null | sed 's/^/  /'
+}
+
+cmd_bench() {
+  local rss; rss="$(ps -eo rss,comm | awk '$2 ~ /^(Xtigervnc|openbox|websockify|python3)$/ {s+=$1} END {print int(s/1024)}')"
+  say "desktop stack RSS: ${rss} MiB   load: $(cut -d' ' -f1 /proc/loadavg)   free: $(free -m | awk '/Mem:/{print $7}') MiB"
+}
+
+case "${1:-}" in
+  install) cmd_install;; ensure) shift; cmd_ensure "$@";; stop) cmd_stop;; status) cmd_status;;
+  desktop) cmd_desktop;; doctor) cmd_doctor;; bench) cmd_bench;; hook) cmd_hook;;
+  auth-start) cmd_auth_start;; auth-submit) shift; cmd_auth_submit "$@";; auth-status) shift; cmd_auth_status "$@";; auth-token) cmd_auth_token;;
+  *) sed -n '2,3p' "$0"; exit 64;;
+esac

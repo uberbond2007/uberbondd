@@ -1,0 +1,9 @@
+{
+  "_comment": "Copy to ~/.config/uberbond-phoenix/services.d/cos-core.json and replace cmd with the VERIFIED launch command of the existing Chat On Steroids Core install. Nothing here is guessed; the cloud session could not see that install.",
+  "name": "cos-core",
+  "cmd": ["REPLACE_WITH_ABSOLUTE_PATH_TO_LAUNCHER", "--REPLACE-with-existing-flags"],
+  "cwd": "/REPLACE/with/install/dir",
+  "env": { "DISPLAY": ":1" },
+  "probePort": null,
+  "enabled": false
+}
