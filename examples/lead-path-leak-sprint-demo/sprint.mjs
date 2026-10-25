@@ -1,0 +1,167 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+export const RISK_LABEL =
+  'ILLUSTRATIVE ESTIMATE — not realized loss, not causal attribution, not recovered revenue, not a promise';
+export const RISK_FORMULA =
+  'averageTicketUsd × baselineConversionProbability × grossMarginRate × (1 − conversionRetainedAfterLateResponse)';
+
+const ms = (iso) => {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) throw new Error(`Invalid timestamp: ${iso}`);
+  return t;
+};
+
+function findCreated(caseData, leadId) {
+  const lead = caseData.lead;
+  if (!lead || lead.id !== leadId) throw new Error(`Lead not found: ${leadId}`);
+  const created = (caseData.records?.crm ?? []).find(
+    (r) => r.leadId === leadId && r.type === 'lead_created',
+  );
+  if (!created) throw new Error(`Missing lead-created CRM record for ${leadId}`);
+  return created;
+}
+
+function firstContact(caseData, leadId, createdMs) {
+  const scope = caseData.coverage.channelsInScope;
+  return (caseData.records.contacts ?? [])
+    .filter(
+      (c) =>
+        c.leadId === leadId &&
+        c.direction === 'outbound' &&
+        c.actor === 'human' &&
+        scope.includes(c.channel) &&
+        ms(c.timestamp) >= createdMs,
+    )
+    .sort((a, b) => ms(a.timestamp) - ms(b.timestamp))[0];
+}
+
+export function evaluateSla(caseData, leadId) {
+  const created = findCreated(caseData, leadId);
+  const createdMs = ms(created.timestamp);
+  const slaMinutes = caseData.sla.firstResponseMinutes;
+  const assignment = (caseData.records.crm ?? []).find(
+    (r) => r.leadId === leadId && r.type === 'lead_assigned',
+  );
+  const contact = firstContact(caseData, leadId, createdMs);
+  const evidenceIds = [created.id];
+  if (assignment) evidenceIds.push(assignment.id);
+  if (!contact) {
+    return {
+      leadId,
+      createdAt: created.timestamp,
+      firstContactAt: null,
+      firstContactChannel: null,
+      elapsedMinutes: null,
+      slaMinutes,
+      breachMinutes: 0,
+      status: 'NO_CONTACT_FOUND',
+      evidenceIds,
+    };
+  }
+  evidenceIds.push(contact.id);
+  const elapsedMinutes = (ms(contact.timestamp) - createdMs) / 60000;
+  return {
+    leadId,
+    createdAt: created.timestamp,
+    firstContactAt: contact.timestamp,
+    firstContactChannel: contact.channel,
+    elapsedMinutes,
+    slaMinutes,
+    breachMinutes: Math.max(0, elapsedMinutes - slaMinutes),
+    status: elapsedMinutes <= slaMinutes ? 'WITHIN_SLA' : 'BREACH',
+    evidenceIds,
+  };
+}
+
+export function assessContactCoverage(caseData, leadId, untilIso) {
+  const created = findCreated(caseData, leadId);
+  const cov = caseData.coverage;
+  const missingChannels = cov.channelsInScope.filter((c) => !cov.channelsCovered.includes(c));
+  const windowCovered =
+    ms(cov.windowStart) <= ms(created.timestamp) && ms(cov.windowEnd) >= ms(untilIso);
+  const supported = missingChannels.length === 0 && windowCovered;
+  const reasons = [];
+  if (missingChannels.length) reasons.push(`channels not covered by logs: ${missingChannels.join(', ')}`);
+  if (!windowCovered) reasons.push('log window does not cover [lead created, until]');
+  return {
+    conclusion: supported ? 'NO_EARLIER_CONTACT_SUPPORTED' : 'INCONCLUSIVE_COVERAGE_GAP',
+    missingChannels,
+    windowCovered,
+    reason: supported
+      ? 'All in-scope channels are covered and the log window spans the interval; absence of earlier outbound contact is supported by the logs as provided.'
+      : `Coverage gap (${reasons.join('; ')}). Absence of evidence is not evidence of no contact.`,
+  };
+}
+
+export function estimateRisk(assumptions) {
+  const a = assumptions ?? {};
+  const names = [
+    'averageTicketUsd',
+    'baselineConversionProbability',
+    'grossMarginRate',
+    'conversionRetainedAfterLateResponse',
+  ];
+  for (const n of names) {
+    if (typeof a[n] !== 'number' || !Number.isFinite(a[n])) throw new Error(`${n} must be a finite number`);
+  }
+  if (a.averageTicketUsd < 0) throw new Error('averageTicketUsd must be >= 0');
+  for (const n of names.slice(1)) {
+    if (a[n] < 0 || a[n] > 1) throw new Error(`${n} must be within [0, 1]`);
+  }
+  const timely = a.averageTicketUsd * a.baselineConversionProbability * a.grossMarginRate;
+  const atRisk = timely * (1 - a.conversionRetainedAfterLateResponse);
+  const cents = (x) => Math.round(x * 100 + 1e-6) / 100;
+  return {
+    inputs: { ...a },
+    formula: RISK_FORMULA,
+    expectedGrossMarginIfTimelyUsd: cents(timely),
+    illustrativeAtRiskGrossMarginUsd: cents(atRisk),
+    label: RISK_LABEL,
+    claimFlags: { realizedLoss: false, causalAttribution: false, recoveredRevenue: false, guarantee: false },
+  };
+}
+
+export function buildReport(caseData, leadId) {
+  const sla = evaluateSla(caseData, leadId);
+  const until = sla.firstContactAt ?? caseData.coverage.windowEnd;
+  const coverage = assessContactCoverage(caseData, leadId, until);
+  const assumptions = Object.fromEntries(
+    Object.entries(caseData.riskAssumptions).map(([k, v]) => [k, v.value]),
+  );
+  const risk = estimateRisk(assumptions);
+  const supported = coverage.conclusion === 'NO_EARLIER_CONTACT_SUPPORTED';
+  let summary;
+  if (sla.status === 'NO_CONTACT_FOUND') {
+    summary = 'No qualifying outbound contact was found in the provided records.';
+  } else {
+    summary = `First qualifying outbound contact came ${sla.elapsedMinutes} min after lead creation (SLA ${sla.slaMinutes} min): ${sla.status}${sla.breachMinutes ? `, ${sla.breachMinutes} min over` : ''}.`;
+  }
+  summary += supported
+    ? ' The provided logs support that no earlier contact occurred.'
+    : ' Because contact-log coverage is incomplete, "no earlier contact" cannot be confirmed.';
+  // A breach is only confirmed when the logs could have shown an earlier contact and did not.
+  let verdict;
+  if (!supported) verdict = 'UNCONFIRMED_COVERAGE_GAP';
+  else if (sla.status === 'BREACH') verdict = 'CONFIRMED_BREACH';
+  else if (sla.status === 'WITHIN_SLA') verdict = 'WITHIN_SLA';
+  else verdict = 'NO_CONTACT_IN_COVERED_LOGS';
+  const breachConfirmed = verdict === 'CONFIRMED_BREACH';
+  return {
+    synthetic: caseData.synthetic === true,
+    leadId,
+    verdict,
+    breachConfirmed,
+    summary,
+    sla,
+    coverage,
+    risk: { ...risk, appliesToThisLead: breachConfirmed },
+  };
+}
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const data = JSON.parse(readFileSync(path.join(here, 'synthetic-case.json'), 'utf8'));
+  console.log(JSON.stringify(buildReport(data, data.lead.id), null, 2));
+}

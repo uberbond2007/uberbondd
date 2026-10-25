@@ -1,0 +1,92 @@
+{
+  "synthetic": true,
+  "notice": "Entirely fictional demo data. No real agency, client, person, lead, or domain.",
+  "agency": { "name": "Northwind Growth Partners (synthetic)", "domain": "northwind-growth.example" },
+  "client": { "name": "Brightline Plumbing Co. (synthetic)", "domain": "brightline-plumbing.example" },
+  "sla": {
+    "firstResponseMinutes": 15,
+    "definition": "first outbound human contact attempt on any channel (call, sms, email) after lead creation"
+  },
+  "coverage": {
+    "windowStart": "2026-10-14T00:00:00Z",
+    "windowEnd": "2026-10-15T00:00:00Z",
+    "channelsInScope": ["call", "sms", "email"],
+    "channelsCovered": ["call", "sms", "email"],
+    "source": "Synthetic statement: the agency's contact-log export is asserted to include all outbound call, sms and email attempts for the window above."
+  },
+  "lead": { "id": "LEAD-1001", "displayName": "Pat Example (synthetic)", "email": "pat@customer.example" },
+  "records": {
+    "intake": [
+      {
+        "id": "EV-INT-001",
+        "leadId": "LEAD-1001",
+        "event": "Intake form submission",
+        "timestamp": "2026-10-14T14:01:40Z"
+      }
+    ],
+    "crm": [
+      {
+        "id": "EV-CRM-001",
+        "leadId": "LEAD-1001",
+        "type": "lead_created",
+        "event": "Lead created in CRM",
+        "timestamp": "2026-10-14T14:02:00Z"
+      },
+      {
+        "id": "EV-CRM-002",
+        "leadId": "LEAD-1001",
+        "type": "lead_assigned",
+        "event": "Lead assigned to Rep A (synthetic)",
+        "assignee": "Rep A (synthetic)",
+        "timestamp": "2026-10-14T14:06:00Z"
+      }
+    ],
+    "contacts": [
+      {
+        "id": "EV-CON-001",
+        "leadId": "LEAD-1002",
+        "channel": "call",
+        "direction": "outbound",
+        "actor": "human",
+        "event": "Outbound call to a different lead (LEAD-1002); unrelated",
+        "timestamp": "2026-10-14T14:10:00Z"
+      },
+      {
+        "id": "EV-CON-002",
+        "leadId": "LEAD-1001",
+        "channel": "call",
+        "direction": "outbound",
+        "actor": "human",
+        "event": "First outbound call to this lead by Rep A (synthetic)",
+        "timestamp": "2026-10-14T14:49:00Z"
+      },
+      {
+        "id": "EV-CON-003",
+        "leadId": "LEAD-1001",
+        "channel": "sms",
+        "direction": "outbound",
+        "actor": "human",
+        "event": "Follow-up sms to this lead",
+        "timestamp": "2026-10-14T15:10:00Z"
+      }
+    ]
+  },
+  "riskAssumptions": {
+    "averageTicketUsd": {
+      "value": 850,
+      "basis": "Illustrative assumption supplied by the agency, not measured from this client's data."
+    },
+    "baselineConversionProbability": {
+      "value": 0.3,
+      "basis": "Illustrative assumption supplied by the agency, not measured from this client's data."
+    },
+    "grossMarginRate": {
+      "value": 0.45,
+      "basis": "Illustrative assumption supplied by the agency, not measured from this client's data."
+    },
+    "conversionRetainedAfterLateResponse": {
+      "value": 0.7,
+      "basis": "Illustrative assumption supplied by the agency, not measured from this client's data."
+    }
+  }
+}

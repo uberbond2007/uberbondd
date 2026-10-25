@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead-Path Revenue Leak Evidence Sprint — Sample Report</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { background: #ffffff; color: #1a1a1a; font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 16px; }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: .5rem 0; }
+  h2 { font-size: 1.15rem; margin-top: 1.75rem; border-bottom: 1px solid #8888; padding-bottom: .25rem; }
+  .badge { display: inline-block; background: #b00020; color: #fff; font-weight: 700; padding: 4px 10px; border-radius: 4px; letter-spacing: .05em; }
+  .white { color: #555; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { border: 1px solid #8888; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef0f3; }
+  .banner { border: 3px solid #b00020; background: #fff1f1; color: #5a0010; font-weight: 700; padding: 12px; margin: 12px 0; }
+  .box { border: 1px solid #8888; border-radius: 6px; padding: 12px; background: #f6f7f9; }
+  .breach { color: #b00020; font-weight: 700; }
+  code, pre { background: #eef0f3; padding: 2px 4px; border-radius: 3px; overflow-x: auto; }
+  pre { padding: 8px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121417; color: #e8e8e8; }
+    .white { color: #aaa; }
+    th { background: #232830; }
+    .banner { background: #3a0a12; color: #ffd9de; border-color: #ff5a73; }
+    .box { background: #1b1f25; }
+    .breach { color: #ff6b81; }
+    code, pre { background: #232830; }
+    .badge { background: #ff5a73; color: #1a0006; }
+  }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <span class="badge">SYNTHETIC DEMO DATA</span>
+  <h1>Lead-Path Revenue Leak Evidence Sprint — Sample Report</h1>
+  <p class="white">Prepared by [Your Agency] for client Brightline Plumbing Co. (synthetic). Agency of record in this demo: Northwind Growth Partners (synthetic). All people, records and domains are fictional.</p>
+</header>
+
+<h2>1. Finding summary</h2>
+<p>For LEAD-1001, the first qualifying outbound contact came <strong>47 minutes</strong> after lead creation against a <strong>15-minute</strong> SLA: <span class="breach">BREACH, 32 minutes over</span>. Contact-log coverage supports that no earlier outbound contact occurred. Verdict: <strong>CONFIRMED_BREACH</strong>. Evidence: EV-CRM-001, EV-CRM-002, EV-CON-002.</p>
+
+<h2>2. Evidence timeline</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>ID</th><th>Source</th><th>Timestamp (UTC)</th><th>Event</th></tr></thead>
+<tbody>
+<tr><td>EV-INT-001</td><td>Intake form</td><td>2026-10-14T14:01:40Z</td><td>Intake form submission</td></tr>
+<tr><td>EV-CRM-001</td><td>CRM</td><td>2026-10-14T14:02:00Z</td><td>Lead created in CRM</td></tr>
+<tr><td>EV-CRM-002</td><td>CRM</td><td>2026-10-14T14:06:00Z</td><td>Lead assigned to Rep A (synthetic)</td></tr>
+<tr><td>EV-CON-001</td><td>Contact log</td><td>2026-10-14T14:10:00Z</td><td>Outbound call to a different lead (LEAD-1002) — ignored, unrelated</td></tr>
+<tr><td>EV-CON-002</td><td>Contact log</td><td>2026-10-14T14:49:00Z</td><td>First outbound call to this lead (+47 min)</td></tr>
+<tr><td>EV-CON-003</td><td>Contact log</td><td>2026-10-14T15:10:00Z</td><td>Follow-up sms to this lead</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>3. SLA check</h2>
+<p>SLA definition: first outbound human contact attempt on any channel (call, sms, email) after lead creation.</p>
+<div class="table-wrap">
+<table>
+<tbody>
+<tr><th>Lead created</th><td>2026-10-14T14:02:00Z (EV-CRM-001)</td></tr>
+<tr><th>First contact</th><td>2026-10-14T14:49:00Z, call (EV-CON-002)</td></tr>
+<tr><th>Elapsed</th><td>47 minutes</td></tr>
+<tr><th>SLA</th><td>15 minutes</td></tr>
+<tr><th>Breach</th><td>32 minutes</td></tr>
+<tr><th>Status</th><td class="breach">BREACH</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>4. Contact-log coverage verdict</h2>
+<p><strong>NO_EARLIER_CONTACT_SUPPORTED.</strong> Channels in scope (call, sms, email) are all covered, and the log window 2026-10-14T00:00:00Z to 2026-10-15T00:00:00Z spans lead creation through first contact. If any channel or time range were missing, the verdict would be INCONCLUSIVE_COVERAGE_GAP and "no earlier contact" could not be confirmed.</p>
+
+<h2>5. Illustrative risk calculation</h2>
+<div class="banner">ILLUSTRATIVE ESTIMATE — not realized loss, not causal attribution, not recovered revenue, not a promise</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Assumption</th><th>Value</th><th>Basis</th></tr></thead>
+<tbody>
+<tr><td>averageTicketUsd</td><td>850</td><td>Illustrative assumption supplied by the agency, not measured.</td></tr>
+<tr><td>baselineConversionProbability</td><td>0.30</td><td>Illustrative assumption supplied by the agency, not measured.</td></tr>
+<tr><td>grossMarginRate</td><td>0.45</td><td>Illustrative assumption supplied by the agency, not measured.</td></tr>
+<tr><td>conversionRetainedAfterLateResponse</td><td>0.70</td><td>Illustrative assumption supplied by the agency, not measured.</td></tr>
+</tbody>
+</table>
+</div>
+<p>Formula: <code>averageTicketUsd × baselineConversionProbability × grossMarginRate × (1 − conversionRetainedAfterLateResponse)</code></p>
+<p>Expected gross margin if timely: $114.75. Illustrative at-risk gross margin: <strong>$34.43</strong> (114.75 × 0.30).</p>
+
+<h2>6. What this does / does not establish</h2>
+<div class="box">
+<p><strong>Establishes:</strong> given the supplied records, the timing of first outbound contact versus the stated SLA, and whether the supplied logs support "no earlier contact".</p>
+<p><strong>Does not establish:</strong> realized loss, that the delay caused any lost sale, recovered revenue, a guarantee of future results, or the accuracy of the agency-supplied assumptions. Conclusions are only as complete as the exports provided.</p>
+</div>
+
+<h2>7. Reproduce</h2>
+<pre>node examples/lead-path-leak-sprint-demo/sprint.mjs
+node --test examples/lead-path-leak-sprint-demo/sprint.test.mjs</pre>
+</main>
+</body>
+</html>
