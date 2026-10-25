@@ -143,6 +143,9 @@ test('decisive: 47-minute supplied contact vs 15-minute SLA, with evidence IDs a
   assert.equal(r.independentReconciliation, 'NOT_PERFORMED');
   const html = renderReport(base, r);
   assert.match(html, /Independent reconciliation: <strong>NOT PERFORMED<\/strong>/);
+  assert.equal(r.coverage.declaration.evidenceId, 'EV-DEC-001');
+  assert.ok(html.includes('Supplier declaration <strong>EV-DEC-001</strong>'));
+  assert.ok(html.includes('Operations lead, Northwind Growth Partners (synthetic)'));
   assert.ok(!html.includes('INDEPENDENTLY_RECONCILED') && !html.includes('PERFORMED</strong> against'));
   // A claimed basis without a reconciliation record never upgrades to independent.
   const c = structuredClone(base);
@@ -153,6 +156,9 @@ test('decisive: 47-minute supplied contact vs 15-minute SLA, with evidence IDs a
   const rec = buildReport(c, LEAD);
   assert.equal(rec.independentReconciliation, 'PERFORMED');
   assert.equal(rec.confirmationBasis, 'INDEPENDENTLY_RECONCILED_COMPLETE');
+  // A valid reconciliation record stands on its own without a supplier declaration.
+  c.coverage.declaration = null;
+  assert.equal(buildReport(c, LEAD).confirmationBasis, 'INDEPENDENTLY_RECONCILED_COMPLETE');
 });
 
 test('decisive: changing the contact time updates the rendered report', () => {
@@ -178,6 +184,24 @@ test('decisive: missing SMS coverage prevents confirmation', () => {
   assert.equal(r.breachConfirmed, false);
   assert.equal(r.coverage.coverageClass, 'INCOMPLETE_OR_MISSING');
   assert.match(renderReport(c, r), /UNCONFIRMED_COVERAGE_GAP/);
+  // Full channel/window arrays without a valid declaration (or reconciliation) record are not complete coverage.
+  const variants = {
+    missing: (d) => { d.coverage.declaration = null; },
+    noEvidenceId: (d) => { d.coverage.declaration.evidenceId = ''; },
+    zonelessTime: (d) => { d.coverage.declaration.declaredAt = '2026-10-15T09:00:00'; },
+    labelOnly: (d) => { d.coverage.declaration = null; d.coverage.basis = 'INDEPENDENTLY_RECONCILED'; },
+  };
+  for (const [name, mutate] of Object.entries(variants)) {
+    const d = structuredClone(base);
+    mutate(d);
+    const u = buildReport(d, LEAD);
+    assert.equal(u.verdict, 'UNCONFIRMED_COVERAGE_GAP', name);
+    assert.equal(u.coverage.coverageClass, 'INCOMPLETE_OR_MISSING', name);
+    assert.equal(u.risk.illustrativeAtRiskGrossMarginUsd, null, name);
+    const page = renderReport(d, u);
+    assert.ok(!/\$\d/.test(page), name);
+    assert.ok(page.includes('No valid supplier declaration record'), name);
+  }
 });
 
 test('decisive: unconfirmed result contains no applicable estimate', () => {
@@ -200,6 +224,8 @@ test('decisive: HTML escaping blocks injected markup and scripts', () => {
   c.records.contacts.find((x) => x.id === 'EV-CON-002').event = evil;
   c.records.crm.find((x) => x.id === 'EV-CRM-002').id = 'EV-CRM-002"><b>x</b>';
   c.sla.definition = evil;
+  c.coverage.declaration.statement = evil;
+  c.coverage.declaration.declaredBy = evil;
   const html = renderReport(c, buildReport(c, LEAD));
   assert.ok(!/<script/i.test(html));
   assert.ok(!/<img/i.test(html));

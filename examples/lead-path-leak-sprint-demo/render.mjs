@@ -31,10 +31,15 @@ function coverageText(cov, report) {
   const recon =
     c.independentReconciliation === 'PERFORMED'
       ? `Independent reconciliation: <strong>PERFORMED</strong> against evidence ${esc(c.reconciliationEvidenceIds.join(', '))}.`
-      : 'Independent reconciliation: <strong>NOT PERFORMED</strong>. No reconciliation record against authoritative-source evidence was supplied, so coverage rests on the supplier declaration only.';
+      : `Independent reconciliation: <strong>NOT PERFORMED</strong>. No reconciliation record against authoritative-source evidence was supplied${c.declaration ? ', so coverage rests on the supplier declaration only' : ', and no valid supplier declaration exists either, so coverage is not established'}.`;
+  const d = c.declaration;
+  const decl = d
+    ? `<p>Supplier declaration <strong>${esc(d.evidenceId)}</strong>, by ${esc(d.declaredBy)} at ${esc(d.declaredAt)}: &ldquo;${esc(d.statement)}&rdquo;</p>`
+    : '<p><strong>No valid supplier declaration record</strong> (evidence ID, declarant, zoned timestamp and statement are all required).</p>';
   return `<p><strong>${esc(c.conclusion)}</strong> &middot; coverage class <strong>${esc(c.coverageClass)}</strong></p>
 <p>${esc(c.reason)}</p>
 <p>Channels in scope: ${esc(cov.channelsInScope.join(', '))}. Channels declared covered: ${esc(cov.channelsCovered.join(', '))}. Log window: ${esc(cov.windowStart)} to ${esc(cov.windowEnd)}.</p>
+${decl}
 <p>${recon}</p>`;
 }
 

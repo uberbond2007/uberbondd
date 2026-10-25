@@ -13,7 +13,12 @@
     "channelsInScope": ["call", "sms", "email"],
     "channelsCovered": ["call", "sms", "email"],
     "basis": "SUPPLIER_DECLARED",
-    "source": "Synthetic statement: the agency's contact-log export is asserted to include all outbound call, sms and email attempts for the window above.",
+    "declaration": {
+      "evidenceId": "EV-DEC-001",
+      "declaredBy": "Operations lead, Northwind Growth Partners (synthetic)",
+      "declaredAt": "2026-10-15T09:00:00Z",
+      "statement": "Synthetic declaration: the supplied contact-log export includes every outbound call, sms and email attempt for 2026-10-14T00:00:00Z to 2026-10-15T00:00:00Z."
+    },
     "reconciliation": null
   },
   "lead": { "id": "LEAD-1001", "displayName": "Pat Example (synthetic)", "email": "pat@customer.example" },

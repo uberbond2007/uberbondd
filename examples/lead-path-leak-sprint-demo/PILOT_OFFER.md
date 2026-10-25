@@ -6,7 +6,7 @@
 - CRM export for the pilot window: lead ID, created and assigned timestamps (with time zone), assignee.
 - Intake/form log: submission ID and timestamp.
 - Outbound contact logs for every channel in scope (call, SMS, email): lead ID, channel, direction, human vs automated, timestamp.
-- A written coverage statement: which channels and which time window the logs completely cover.
+- A signed-off coverage declaration: an evidence ID, who declares it, when (with time zone), and the statement of which channels and which time window the logs completely cover. Without one, coverage is treated as incomplete.
 - The SLA to test (for example "first human outbound attempt within 15 minutes").
 - Optional, for an illustrative estimate: average ticket, baseline conversion, gross margin, and an assumed share of conversion kept after a late response. These are the agency's own assumptions.
 
