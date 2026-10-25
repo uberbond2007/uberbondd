@@ -12,7 +12,9 @@
     "windowEnd": "2026-10-15T00:00:00Z",
     "channelsInScope": ["call", "sms", "email"],
     "channelsCovered": ["call", "sms", "email"],
-    "source": "Synthetic statement: the agency's contact-log export is asserted to include all outbound call, sms and email attempts for the window above."
+    "basis": "SUPPLIER_DECLARED",
+    "source": "Synthetic statement: the agency's contact-log export is asserted to include all outbound call, sms and email attempts for the window above.",
+    "reconciliation": null
   },
   "lead": { "id": "LEAD-1001", "displayName": "Pat Example (synthetic)", "email": "pat@customer.example" },
   "records": {

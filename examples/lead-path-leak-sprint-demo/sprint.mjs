@@ -1,13 +1,15 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
+// Pure, dependency-free core. Safe to import in Node and in the browser (no static node: imports).
 
 export const RISK_LABEL =
   'ILLUSTRATIVE ESTIMATE — not realized loss, not causal attribution, not recovered revenue, not a promise';
 export const RISK_FORMULA =
   'averageTicketUsd × baselineConversionProbability × grossMarginRate × (1 − conversionRetainedAfterLateResponse)';
 
+// Timestamps must carry an explicit zone: Date.parse reads zone-less ISO strings as local time,
+// which would make SLA minutes depend on the reviewer's machine.
+const ZONED_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
 const ms = (iso) => {
+  if (typeof iso !== 'string' || !ZONED_ISO.test(iso)) throw new Error(`Timestamp must be ISO 8601 with Z or ±hh:mm: ${iso}`);
   const t = Date.parse(iso);
   if (!Number.isFinite(t)) throw new Error(`Invalid timestamp: ${iso}`);
   return t;
@@ -75,6 +77,19 @@ export function evaluateSla(caseData, leadId) {
   };
 }
 
+// Independent reconciliation counts only with a record naming who reconciled, when, and against which
+// authoritative-source evidence IDs. A bare "basis" label or a supplier statement never qualifies.
+function reconciliationStatus(cov) {
+  const r = cov.reconciliation;
+  const ids = Array.isArray(r?.authoritativeSourceEvidenceIds)
+    ? r.authoritativeSourceEvidenceIds.filter((x) => typeof x === 'string' && x.trim())
+    : [];
+  const performed =
+    !!r && typeof r.reconciledBy === 'string' && r.reconciledBy.trim() !== '' &&
+    Number.isFinite(Date.parse(r.reconciledAt)) && ids.length > 0;
+  return { performed, evidenceIds: performed ? ids : [] };
+}
+
 export function assessContactCoverage(caseData, leadId, untilIso) {
   const created = findCreated(caseData, leadId);
   const cov = caseData.coverage;
@@ -82,15 +97,27 @@ export function assessContactCoverage(caseData, leadId, untilIso) {
   const windowCovered =
     ms(cov.windowStart) <= ms(created.timestamp) && ms(cov.windowEnd) >= ms(untilIso);
   const supported = missingChannels.length === 0 && windowCovered;
+  const reconciliation = reconciliationStatus(cov);
+  let coverageClass = 'INCOMPLETE_OR_MISSING';
+  if (supported) {
+    coverageClass = reconciliation.performed
+      ? 'INDEPENDENTLY_RECONCILED_COMPLETE'
+      : 'SUPPLIER_DECLARED_COMPLETE';
+  }
   const reasons = [];
   if (missingChannels.length) reasons.push(`channels not covered by logs: ${missingChannels.join(', ')}`);
   if (!windowCovered) reasons.push('log window does not cover [lead created, until]');
   return {
     conclusion: supported ? 'NO_EARLIER_CONTACT_SUPPORTED' : 'INCONCLUSIVE_COVERAGE_GAP',
+    coverageClass,
+    independentReconciliation: reconciliation.performed ? 'PERFORMED' : 'NOT_PERFORMED',
+    reconciliationEvidenceIds: reconciliation.evidenceIds,
     missingChannels,
     windowCovered,
     reason: supported
-      ? 'All in-scope channels are covered and the log window spans the interval; absence of earlier outbound contact is supported by the logs as provided.'
+      ? reconciliation.performed
+        ? 'All in-scope channels are covered and the log window spans the interval; coverage was reconciled against the identified authoritative-source evidence.'
+        : 'The supplier declares all in-scope channels covered for a window spanning the interval; absence of earlier outbound contact is supported only by the logs as supplied. Independent reconciliation was NOT PERFORMED.'
       : `Coverage gap (${reasons.join('; ')}). Absence of evidence is not evidence of no contact.`,
   };
 }
@@ -139,9 +166,12 @@ export function buildReport(caseData, leadId) {
     summary = `First qualifying outbound contact came ${sla.elapsedMinutes} min after lead creation (SLA ${sla.slaMinutes} min): ${sla.status}${sla.breachMinutes ? `, ${sla.breachMinutes} min over` : ''}.`;
   }
   summary += supported
-    ? ' The provided logs support that no earlier contact occurred.'
+    ? coverage.independentReconciliation === 'PERFORMED'
+      ? ' Reconciled log coverage supports that no earlier contact occurred.'
+      : ' The supplier-declared logs support that no earlier contact occurred; independent reconciliation was NOT PERFORMED.'
     : ' Because contact-log coverage is incomplete, "no earlier contact" cannot be confirmed.';
   // A breach is only confirmed when the logs could have shown an earlier contact and did not.
+  const confirmationBasis = !supported ? null : coverage.coverageClass;
   let verdict;
   if (!supported) verdict = 'UNCONFIRMED_COVERAGE_GAP';
   else if (sla.status === 'BREACH') verdict = 'CONFIRMED_BREACH';
@@ -153,15 +183,33 @@ export function buildReport(caseData, leadId) {
     leadId,
     verdict,
     breachConfirmed,
+    confirmationBasis,
+    independentReconciliation: coverage.independentReconciliation,
     summary,
     sla,
     coverage,
-    risk: { ...risk, appliesToThisLead: breachConfirmed },
+    risk: breachConfirmed
+      ? { ...risk, appliesToThisLead: true }
+      : {
+          appliesToThisLead: false,
+          label: risk.label,
+          formula: risk.formula,
+          expectedGrossMarginIfTimelyUsd: null,
+          illustrativeAtRiskGrossMarginUsd: null,
+          suppressedReason: `No lead-specific estimate: verdict is ${verdict}, not CONFIRMED_BREACH.`,
+          claimFlags: risk.claimFlags,
+        },
   };
 }
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const data = JSON.parse(readFileSync(path.join(here, 'synthetic-case.json'), 'utf8'));
-  console.log(JSON.stringify(buildReport(data, data.lead.id), null, 2));
+// CLI: `node sprint.mjs` prints the report for synthetic-case.json. Skipped in the browser.
+if (typeof process !== 'undefined' && process.argv?.[1]) {
+  const { fileURLToPath } = await import('node:url');
+  const path = await import('node:path');
+  if (path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    const { readFileSync } = await import('node:fs');
+    const file = path.join(path.dirname(fileURLToPath(import.meta.url)), 'synthetic-case.json');
+    const data = JSON.parse(readFileSync(file, 'utf8'));
+    console.log(JSON.stringify(buildReport(data, data.lead.id), null, 2));
+  }
 }
