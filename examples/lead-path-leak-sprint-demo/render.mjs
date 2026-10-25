@@ -26,21 +26,54 @@ function timeline(caseData, report) {
     .join('\n');
 }
 
+const REF_TEXT = {
+  RESOLVED: (r) => `source record present: ${esc(r.source)}, ${esc(r.event)}, ${esc(r.timestamp)}`,
+  MISSING: () => '<strong>source record MISSING</strong> from records.authoritativeSources',
+  AMBIGUOUS: () => '<strong>AMBIGUOUS</strong>: resolves to more than one record',
+  INVALID: () => '<strong>INVALID</strong>: source record lacks required fields',
+};
+
+function reconciliationHtml(c) {
+  const st = c.reconciliationStatus;
+  const rec = c.reconciliation;
+  if (st === 'NOT_RECORDED') {
+    return `<p>Independent reconciliation: <strong>NOT PERFORMED</strong> (status <strong>NOT_RECORDED</strong>). No reconciliation record against authoritative-source evidence was supplied${c.declaration ? ', so coverage rests on the supplier declaration only' : ', and no valid supplier declaration exists either, so coverage is not established'}.</p>`;
+  }
+  const head = st === 'INDEPENDENTLY_ACCEPTED'
+    ? 'Independent reconciliation: <strong>INDEPENDENTLY_ACCEPTED</strong> (record, linked source records and an accepting review passed the deterministic checks).'
+    : 'Independent reconciliation: <strong>RECORDED_UNVERIFIED</strong>. A record was supplied but it is <strong>not</strong> independently accepted, so it does not establish coverage.';
+  const refs = c.reconciliationReferences
+    .map((r) => `<li>${esc(r.id)}: ${REF_TEXT[r.state](r)}</li>`)
+    .join('');
+  const rv = c.reconciliationReview;
+  const review = rv
+    ? `Review ${esc(rv.id)} by ${esc(rv.reviewedBy)} at ${esc(rv.reviewedAt)}, decision ${esc(rv.decision)}: ${rv.accepted ? '<strong>review record checks passed</strong>' : '<strong>review record checks FAILED, acceptance NOT established</strong>'}.`
+    : '<strong>No reconciliation review record</strong>: acceptance NOT established.';
+  const problems = c.reconciliationProblems.length
+    ? `<p>Problems: ${esc(c.reconciliationProblems.join('; '))}.</p>`
+    : '';
+  return `<p>${head}</p>
+<p>Reconciliation ${esc(rec.reconciliationId)} by ${esc(rec.reconciledBy)} at ${esc(rec.reconciledAt)}. Referenced authoritative-source evidence:</p>
+<ul>${refs || '<li>none referenced</li>'}</ul>
+<p>${review}</p>
+${problems}<p class="muted">${esc(c.authenticationCaveat)}</p>`;
+}
+
 function coverageText(cov, report) {
   const c = report.coverage;
-  const recon =
-    c.independentReconciliation === 'PERFORMED'
-      ? `Independent reconciliation: <strong>PERFORMED</strong> against evidence ${esc(c.reconciliationEvidenceIds.join(', '))}.`
-      : `Independent reconciliation: <strong>NOT PERFORMED</strong>. No reconciliation record against authoritative-source evidence was supplied${c.declaration ? ', so coverage rests on the supplier declaration only' : ', and no valid supplier declaration exists either, so coverage is not established'}.`;
   const d = c.declaration;
   const decl = d
     ? `<p>Supplier declaration <strong>${esc(d.evidenceId)}</strong>, by ${esc(d.declaredBy)} at ${esc(d.declaredAt)}: &ldquo;${esc(d.statement)}&rdquo;</p>`
     : '<p><strong>No valid supplier declaration record</strong> (evidence ID, declarant, zoned timestamp and statement are all required).</p>';
+  const label = c.declaredBasisLabel
+    ? `<p class="muted">Basis label &ldquo;${esc(c.declaredBasisLabel)}&rdquo; is ignored as proof; only the records above count.</p>`
+    : '';
   return `<p><strong>${esc(c.conclusion)}</strong> &middot; coverage class <strong>${esc(c.coverageClass)}</strong></p>
 <p>${esc(c.reason)}</p>
 <p>Channels in scope: ${esc(cov.channelsInScope.join(', '))}. Channels declared covered: ${esc(cov.channelsCovered.join(', '))}. Log window: ${esc(cov.windowStart)} to ${esc(cov.windowEnd)}.</p>
 ${decl}
-<p>${recon}</p>`;
+${reconciliationHtml(c)}
+${label}`;
 }
 
 function riskSection(caseData, report) {
@@ -100,6 +133,6 @@ ${riskSection(caseData, report)}
 <h2>6. What this does / does not establish</h2>
 <div class="box">
 <p><strong>Establishes:</strong> given the supplied records, the timing of first outbound contact versus the stated SLA, and whether the stated coverage supports "no earlier contact".</p>
-<p><strong>Does not establish:</strong> realized loss, that the delay caused any lost sale, recovered revenue, any guarantee, the accuracy of agency-supplied assumptions, or (unless a reconciliation record is shown above) that the supplier's coverage declaration is true.</p>
+<p><strong>Does not establish:</strong> realized loss, that the delay caused any lost sale, recovered revenue, any guarantee, the accuracy of agency-supplied assumptions, or that the supplier's coverage declaration is true. Even an accepted reconciliation is checked for presence and links only: this software does not authenticate provider artifacts or reviewer identity.</p>
 </div>`;
 }

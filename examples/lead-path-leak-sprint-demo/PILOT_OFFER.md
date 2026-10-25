@@ -17,9 +17,11 @@
 - Whether the *declared* coverage spans every in-scope channel and the full interval. If not, the verdict is `UNCONFIRMED_COVERAGE_GAP`.
 - The illustrative estimate formula, shown only for a `CONFIRMED_BREACH`.
 
-**Human / source reconciliation (separate, performed only if agreed and recorded):**
+**Human / source reconciliation (separately scoped, performed only if agreed and recorded):**
 - Checking a sample of the supplied logs against an authoritative source the agency identifies, such as the phone system's native call report or the email provider's sent log, to test the coverage declaration.
-- Results go into a reconciliation record (who, when, and the evidence IDs reconciled against). Without that record, every report states **Independent reconciliation: NOT PERFORMED** and the coverage class stays `SUPPLIER_DECLARED_COMPLETE`.
+- For the software to treat this as independently accepted, the case file must contain a reconciliation record (ID, who, when), the authoritative-source records it references (each resolving to exactly one supplied record with a source, an event and a zoned timestamp), and a separate review record (own ID, matching reconciliation ID, decision `ACCEPTED`, a review time not before the reconciliation, and a reviewer distinct from the reconciler).
+- The software checks presence and links only. It does **not** authenticate provider artifacts or reviewer identity; that remains a human judgement.
+- Report statuses: `NOT_RECORDED` (reported as "Independent reconciliation: NOT PERFORMED"), `RECORDED_UNVERIFIED` (a record exists but a link, field or review check failed, so it does not establish coverage), and `INDEPENDENTLY_ACCEPTED`. Only the last can produce `INDEPENDENTLY_RECONCILED_COMPLETE`. A `basis` label is never treated as proof.
 
 ## Evidence delivered
 - Per-lead report (HTML and JSON): verdict, confirmation basis, cited evidence IDs and timestamps, SLA math, coverage class, reconciliation status.
@@ -30,7 +32,7 @@
 The pilot is accepted when all of these hold:
 1. Every lead in the agreed sample has a report with one of the defined verdicts.
 2. Every timing finding cites the evidence IDs it uses, and rerunning on the same inputs reproduces it exactly.
-3. No report claims "no earlier contact" where coverage is incomplete, and no report claims independent reconciliation without a reconciliation record.
+3. No report claims "no earlier contact" where coverage is incomplete, and none claims independent reconciliation unless the reconciliation record, its referenced source records and an accepting review all resolve as described above.
 4. No lead-specific estimate appears unless the verdict is `CONFIRMED_BREACH`.
 5. The agency can spot-check at least 5 findings against its own systems and confirm the cited records match.
 
@@ -45,5 +47,11 @@ The pilot is accepted when all of these hold:
 - Processed locally or in the agency's own environment. Not shared with third parties. Leads are never contacted.
 - Inputs and working copies are deleted within 30 days of acceptance, or sooner on request. The agency keeps the reports.
 
-## Pilot price hypothesis (UNVALIDATED)
-**Hypothesis only, not a quote and not validated with any buyer:** a fixed fee of about **$1,500** for up to 3 client accounts and a 30-day lead window, with independent reconciliation priced separately if requested. Price, scope and demand all remain untested.
+## Pilot terms hypothesis (UNVALIDATED, NEGOTIABLE)
+**Hypothesis only. Not a quote, not a guarantee, and not validated with any buyer.** Every term below is open to change after buyer feedback:
+- Scope: up to **500 leads in total across 3 client accounts** (not 500 per account), within a 30-day lead window.
+- Fee: about **$1,500** fixed for that scope.
+- Timing target: **five business days** after the agency's inputs are complete. This is a target, not a commitment, and the clock does not start until the inputs (including the coverage declaration) are complete.
+- Revisions: **one correction round** on the delivered report.
+- Independent reconciliation: **separately scoped and priced** if requested; it is not included in the fee above.
+Price, scope, timing and demand all remain untested.

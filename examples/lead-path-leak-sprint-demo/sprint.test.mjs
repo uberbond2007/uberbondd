@@ -10,6 +10,21 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const base = JSON.parse(readFileSync(path.join(here, 'synthetic-case.json'), 'utf8'));
 const LEAD = 'LEAD-1001';
 const LABEL = 'ILLUSTRATIVE ESTIMATE — not realized loss, not causal attribution, not recovered revenue, not a promise';
+// A fully linked synthetic reconciliation: record, one supplied authoritative-source object, and a distinct reviewer's acceptance.
+const acceptedCase = () => {
+  const c = structuredClone(base);
+  c.records.authoritativeSources = [
+    { id: 'EV-SRC-001', source: 'Synthetic phone-system call report', event: 'Outbound call list export for 2026-10-14', timestamp: '2026-10-15T08:00:00Z' },
+  ];
+  c.coverage.reconciliation = {
+    reconciliationId: 'REC-001', reconciledBy: 'Analyst A (synthetic)', reconciledAt: '2026-10-16T10:00:00Z',
+    authoritativeSourceEvidenceIds: ['EV-SRC-001'],
+  };
+  c.coverage.reconciliationReview = {
+    id: 'REV-001', reconciliationId: 'REC-001', reviewedBy: 'Reviewer B (synthetic)', reviewedAt: '2026-10-16T12:00:00Z', decision: 'ACCEPTED',
+  };
+  return c;
+};
 const assumptions = () =>
   Object.fromEntries(Object.entries(base.riskAssumptions).map(([k, v]) => [k, v.value]));
 
@@ -140,25 +155,115 @@ test('decisive: 47-minute supplied contact vs 15-minute SLA, with evidence IDs a
   assert.equal(r.verdict, 'CONFIRMED_BREACH');
   assert.deepEqual(r.sla.evidenceIds, ['EV-CRM-001', 'EV-CRM-002', 'EV-CON-002']);
   assert.equal(r.confirmationBasis, 'SUPPLIER_DECLARED_COMPLETE');
-  assert.equal(r.independentReconciliation, 'NOT_PERFORMED');
   const html = renderReport(base, r);
   assert.match(html, /Independent reconciliation: <strong>NOT PERFORMED<\/strong>/);
   assert.equal(r.coverage.declaration.evidenceId, 'EV-DEC-001');
   assert.ok(html.includes('Supplier declaration <strong>EV-DEC-001</strong>'));
   assert.ok(html.includes('Operations lead, Northwind Growth Partners (synthetic)'));
   assert.ok(!html.includes('INDEPENDENTLY_RECONCILED') && !html.includes('PERFORMED</strong> against'));
-  // A claimed basis without a reconciliation record never upgrades to independent.
+  // A basis label never upgrades coverage, and the sample records no reconciliation at all.
+  assert.equal(r.reconciliationStatus, 'NOT_RECORDED');
+  assert.equal(r.coverage.reconciliationStatus, 'NOT_RECORDED');
+  const labelled = structuredClone(base);
+  labelled.coverage.basis = 'INDEPENDENTLY_RECONCILED';
+  assert.equal(buildReport(labelled, LEAD).confirmationBasis, 'SUPPLIER_DECLARED_COMPLETE');
+  // Only a linked, reviewed reconciliation reaches INDEPENDENTLY_ACCEPTED, and it stands without a declaration.
+  const ok = acceptedCase();
+  const rec = buildReport(ok, LEAD);
+  assert.equal(rec.reconciliationStatus, 'INDEPENDENTLY_ACCEPTED');
+  assert.equal(rec.confirmationBasis, 'INDEPENDENTLY_RECONCILED_COMPLETE');
+  ok.coverage.declaration = null;
+  assert.equal(buildReport(ok, LEAD).confirmationBasis, 'INDEPENDENTLY_RECONCILED_COMPLETE');
+  const page = renderReport(ok, buildReport(ok, LEAD));
+  assert.match(page, /INDEPENDENTLY_ACCEPTED/);
+  assert.match(page, /EV-SRC-001: source record present: Synthetic phone-system call report/);
+  assert.match(page, /does not authenticate provider artifacts or reviewer identity/);
+});
+
+test('negative: fabricated reconciliation metadata and typed IDs never yield independent coverage', () => {
   const c = structuredClone(base);
   c.coverage.basis = 'INDEPENDENTLY_RECONCILED';
-  c.coverage.reconciliation = { reconciledBy: 'Analyst (synthetic)', reconciledAt: '2026-10-16T10:00:00Z', authoritativeSourceEvidenceIds: [] };
-  assert.equal(buildReport(c, LEAD).independentReconciliation, 'NOT_PERFORMED');
-  c.coverage.reconciliation.authoritativeSourceEvidenceIds = ['EV-SRC-001'];
-  const rec = buildReport(c, LEAD);
-  assert.equal(rec.independentReconciliation, 'PERFORMED');
-  assert.equal(rec.confirmationBasis, 'INDEPENDENTLY_RECONCILED_COMPLETE');
-  // A valid reconciliation record stands on its own without a supplier declaration.
+  c.coverage.reconciliation = {
+    reconciliationId: 'REC-FAKE', reconciledBy: 'Analyst A (synthetic)', reconciledAt: '2026-10-16T10:00:00Z',
+    authoritativeSourceEvidenceIds: ['EV-SRC-001', 'EV-SRC-002'],
+  };
+  // Metadata and typed IDs only: no source objects, no review record.
+  let r = buildReport(c, LEAD);
+  assert.equal(r.reconciliationStatus, 'RECORDED_UNVERIFIED');
+  assert.equal(r.confirmationBasis, 'SUPPLIER_DECLARED_COMPLETE');
+  assert.deepEqual(r.coverage.reconciliationReferences.map((x) => x.state), ['MISSING', 'MISSING']);
+  let html = renderReport(c, r);
+  assert.match(html, /<strong>RECORDED_UNVERIFIED<\/strong>/);
+  assert.match(html, /source record MISSING/);
+  assert.match(html, /No reconciliation review record/);
+  assert.match(html, /does not authenticate provider artifacts or reviewer identity/);
+  assert.ok(!html.includes('INDEPENDENTLY_ACCEPTED') && !html.includes('INDEPENDENTLY_RECONCILED_COMPLETE'));
+  assert.ok(!html.includes('NOT PERFORMED'), 'a supplied record is described as unverified, not as absent');
+  // With no valid supplier declaration either, coverage is unconfirmed and the amounts are suppressed.
   c.coverage.declaration = null;
-  assert.equal(buildReport(c, LEAD).confirmationBasis, 'INDEPENDENTLY_RECONCILED_COMPLETE');
+  r = buildReport(c, LEAD);
+  assert.equal(r.verdict, 'UNCONFIRMED_COVERAGE_GAP');
+  assert.equal(r.coverage.coverageClass, 'INCOMPLETE_OR_MISSING');
+  assert.equal(r.risk.illustrativeAtRiskGrossMarginUsd, null);
+  assert.ok(!/\$\d/.test(renderReport(c, r)));
+});
+
+test('negative: an acceptance record without authoritative records is not independent acceptance', () => {
+  const c = acceptedCase();
+  delete c.records.authoritativeSources;
+  c.coverage.declaration = null;
+  let r = buildReport(c, LEAD);
+  assert.equal(r.reconciliationStatus, 'RECORDED_UNVERIFIED');
+  assert.equal(r.coverage.reconciliationReview.accepted, true, 'the review record itself is well-formed');
+  assert.equal(r.verdict, 'UNCONFIRMED_COVERAGE_GAP');
+  assert.equal(r.risk.appliesToThisLead, false);
+  const html = renderReport(c, r);
+  assert.match(html, /EV-SRC-001: <strong>source record MISSING<\/strong>/);
+  assert.match(html, /RECORDED_UNVERIFIED/);
+  assert.ok(!html.includes('INDEPENDENTLY_ACCEPTED'));
+  // Ambiguous or incomplete source objects do not resolve either.
+  const dupe = acceptedCase();
+  dupe.records.authoritativeSources.push(structuredClone(dupe.records.authoritativeSources[0]));
+  assert.deepEqual(buildReport(dupe, LEAD).coverage.reconciliationReferences.map((x) => x.state), ['AMBIGUOUS']);
+  const zoneless = acceptedCase();
+  zoneless.records.authoritativeSources[0].timestamp = '2026-10-15T08:00:00';
+  assert.deepEqual(buildReport(zoneless, LEAD).coverage.reconciliationReferences.map((x) => x.state), ['INVALID']);
+  const blank = acceptedCase();
+  blank.records.authoritativeSources[0].event = ' ';
+  assert.equal(buildReport(blank, LEAD).reconciliationStatus, 'RECORDED_UNVERIFIED');
+  // Duplicate reference IDs and a declaration-only ID cannot stand in for a source record.
+  const twice = acceptedCase();
+  twice.coverage.reconciliation.authoritativeSourceEvidenceIds = ['EV-SRC-001', 'EV-SRC-001'];
+  assert.equal(buildReport(twice, LEAD).reconciliationStatus, 'RECORDED_UNVERIFIED');
+  const decl = acceptedCase();
+  decl.coverage.reconciliation.authoritativeSourceEvidenceIds = ['EV-DEC-001'];
+  assert.equal(buildReport(decl, LEAD).coverage.reconciliationReferences[0].state, 'MISSING');
+});
+
+test('negative: review defects keep reconciliation unverified', () => {
+  const defects = {
+    mismatchedReconciliationId: (c) => { c.coverage.reconciliationReview.reconciliationId = 'REC-OTHER'; },
+    notAccepted: (c) => { c.coverage.reconciliationReview.decision = 'REJECTED'; },
+    reviewedBeforeReconciled: (c) => { c.coverage.reconciliationReview.reviewedAt = '2026-10-16T09:59:00Z'; },
+    zonelessReviewTime: (c) => { c.coverage.reconciliationReview.reviewedAt = '2026-10-16T12:00:00'; },
+    sameNameAsReconciler: (c) => { c.coverage.reconciliationReview.reviewedBy = '  analyst a (SYNTHETIC) '; },
+    reviewIdEqualsReconciliationId: (c) => { c.coverage.reconciliationReview.id = 'REC-001'; },
+    noReviewId: (c) => { delete c.coverage.reconciliationReview.id; },
+    noReviewRecord: (c) => { delete c.coverage.reconciliationReview; },
+    noReconciliationId: (c) => { delete c.coverage.reconciliation.reconciliationId; },
+  };
+  for (const [name, mutate] of Object.entries(defects)) {
+    const c = acceptedCase();
+    mutate(c);
+    const r = buildReport(c, LEAD);
+    assert.equal(r.reconciliationStatus, 'RECORDED_UNVERIFIED', name);
+    assert.equal(r.confirmationBasis, 'SUPPLIER_DECLARED_COMPLETE', name);
+    assert.match(renderReport(c, r), /RECORDED_UNVERIFIED/, name);
+  }
+  // A review dated exactly at the reconciliation time is not "before" it.
+  const same = acceptedCase();
+  same.coverage.reconciliationReview.reviewedAt = same.coverage.reconciliation.reconciledAt;
+  assert.equal(buildReport(same, LEAD).reconciliationStatus, 'INDEPENDENTLY_ACCEPTED');
 });
 
 test('decisive: changing the contact time updates the rendered report', () => {
@@ -226,6 +331,16 @@ test('decisive: HTML escaping blocks injected markup and scripts', () => {
   c.sla.definition = evil;
   c.coverage.declaration.statement = evil;
   c.coverage.declaration.declaredBy = evil;
+  // Reconciliation, source and review text reaches the page too.
+  const rc = acceptedCase();
+  c.records.authoritativeSources = rc.records.authoritativeSources;
+  c.coverage.reconciliation = rc.coverage.reconciliation;
+  c.coverage.reconciliationReview = rc.coverage.reconciliationReview;
+  c.records.authoritativeSources[0].source = evil;
+  c.records.authoritativeSources[0].event = evil;
+  c.coverage.reconciliation.reconciledBy = evil;
+  c.coverage.reconciliationReview.reviewedBy = evil + ' reviewer';
+  c.coverage.reconciliationReview.decision = evil;
   const html = renderReport(c, buildReport(c, LEAD));
   assert.ok(!/<script/i.test(html));
   assert.ok(!/<img/i.test(html));
