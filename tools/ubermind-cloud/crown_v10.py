@@ -18,12 +18,33 @@ def digest(obj):return hashlib.sha256(canonical(obj).encode()).hexdigest()
 def filehash(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def _integer(n):return type(n)==int and 0<=n<=2**53
 
+# Names a documented Claude Code cloud host may itself set while it manages provider routing.
+# Tolerated ONLY under recognized host markers; every other SENSITIVE name always holds.
+HOST_ROUTING_NAMES=frozenset({'ANTHROPIC_BASE_URL','AWS_ACCESS_KEY_ID'})
+
+def _runtime_class(env):
+    # Documented: CLAUDE_CODE_REMOTE='true' in a cloud session; CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST is set by
+    # host platforms that manage provider routing; CLAUDECODE='1' in subprocesses Claude Code spawns.
+    # None of these certifies subscription auth, and inherited markers cannot prove which process launched a CLI.
+    if env.get('CLAUDE_CODE_REMOTE')=='true' and env.get('CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST'):return 'HOST_MANAGED_REMOTE'
+    if env.get('CLAUDECODE')=='1':return 'LOCAL_CLI'
+    return 'UNKNOWN'
+
 def preflight(env=None, model_settings=None):
     env=dict(os.environ if env is None else env)
     present=sorted(k for k in SENSITIVE if env.get(k))
     override=bool(env.get('CLAUDE_CODE_SUBAGENT_MODEL') or env.get('CLAUDE_CODE_SUBAGENT_MODEL_FORCE'))
-    details={'state':'HOLD_BILLING_ROUTE' if present else 'SUBSCRIPTION_IDENTITY_UNVERIFIED',
-      'credential_or_provider_override_names':present,
+    runtime=_runtime_class(env)
+    tolerated=sorted(k for k in present if k in HOST_ROUTING_NAMES) if runtime=='HOST_MANAGED_REMOTE' else []
+    holding=[k for k in present if k not in tolerated]
+    if holding:state='HOLD_BILLING_ROUTE'
+    elif runtime=='HOST_MANAGED_REMOTE':state='HOST_MANAGED_ROUTE_SUBSCRIPTION_UNVERIFIED'
+    elif runtime=='LOCAL_CLI':state='SUBSCRIPTION_IDENTITY_UNVERIFIED'
+    else:state='HOLD_RUNTIME_EVIDENCE_MISSING'
+    details={'state':state,
+      'runtime_class':runtime,
+      'credential_or_provider_override_names':holding,
+      'host_managed_routing_names':tolerated,
       'model_override':override,
       'authenticated_plan_verified':False,
       'api_charge_absence_verified':False,
