@@ -1,6 +1,6 @@
 ---
 name: ubermind-transcendent
-description: Sovereign Opus strategic workflow with lawful permission gates and source-specific evidence from the current repo. Activate for substantive UberBond tasks only.
+description: Automatic quality-constrained UberMind Opus Crown; proactively route relevant scoped file searches to Haiku, code/test work to Sonnet, and reserve Opus for original strategic reasoning.
 ---
 # UberMind V10 · Public-repository-safe cloud adapter
 
@@ -17,3 +17,7 @@ description: Sovereign Opus strategic workflow with lawful permission gates and 
 **Acceptance:** One small reversible mission with actual tests, a known repo SHA, independent evidence, and a clear output. No automatic external outreach, payments, trades, production deployments, or extra paid API/credits. Preserve the Codespace V10 install and its 502 passing tests. Do not rerun all 502 just to confirm the cloud bridge.
 
 **Receipt:** Applied A/C/R/N/X only when source available, Screened actual subset, Sources read/missing, R01–R12, Evidence honest.
+
+
+## Automatic routing entrypoint
+Read `.claude/rules/ubermind-v10-auto-routing.md` and route substantial tasks through named subagents only when valuable. No manual model selection is required for each delegated task. Native forks inherit the main model; named agents use their model and effort frontmatter. Keep original authorization and source gates; never claim a subscription savings figure without comparable usage evidence.

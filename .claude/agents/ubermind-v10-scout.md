@@ -1,6 +1,6 @@
 ---
 name: ubermind-v10-scout
-description: Bounded ubermind-v10-scout mission with evidence and no external authority. Opus main decides when delegation adds verified value.
+description: Use proactively for quick read-only path discovery, exact file/ID lookup, limited Grep/Glob and targeted test location. Haiku low, at most 6 turns. Return concise source pointers; no edits.
 model: haiku
 effort: low
 maxTurns: 6

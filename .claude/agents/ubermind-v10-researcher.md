@@ -1,6 +1,6 @@
 ---
 name: ubermind-v10-researcher
-description: Bounded ubermind-v10-researcher mission with evidence and no external authority. Opus main decides when delegation adds verified value.
+description: Use proactively for bounded read-only comparisons of relevant source files, documentation or a few code paths when simple lookup is insufficient. Haiku medium, at most 8 turns. Cite sources; no edits.
 model: haiku
 effort: medium
 maxTurns: 8

@@ -1,6 +1,6 @@
 ---
 name: ubermind-v10-frontier
-description: Bounded ubermind-v10-frontier mission with evidence and no external authority. Opus main decides when delegation adds verified value.
+description: Use rarely for original cross-domain invention, scientific unknowns or exceptionally hard unresolved reasoning after smaller routes cannot solve it. Opus xhigh, at most 8 turns.
 model: opus
 effort: xhigh
 maxTurns: 8

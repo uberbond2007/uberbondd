@@ -1,6 +1,6 @@
 ---
 name: ubermind-v10-strategist
-description: Bounded ubermind-v10-strategist mission with evidence and no external authority. Opus main decides when delegation adds verified value.
+description: Use sparingly for difficult independent game theory, incentives, EQ, risk and strategic synthesis that justifies an additional Opus perspective. Opus high, at most 8 turns. No routine coding.
 model: opus
 effort: high
 maxTurns: 8

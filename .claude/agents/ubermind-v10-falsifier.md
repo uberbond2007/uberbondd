@@ -1,6 +1,6 @@
 ---
 name: ubermind-v10-falsifier
-description: Bounded ubermind-v10-falsifier mission with evidence and no external authority. Opus main decides when delegation adds verified value.
+description: Use proactively for an independent read-only review of material changes, negative cases, security or evidence-claim falsification when warranted. Sonnet high, at most 8 turns.
 model: sonnet
 effort: high
 maxTurns: 8

@@ -1,6 +1,6 @@
 ---
 name: ubermind-v10-builder
-description: Bounded ubermind-v10-builder mission with evidence and no external authority. Opus main decides when delegation adds verified value.
+description: Use proactively for localized coding, focused repairs and deterministic tests after acceptance criteria are clear. Sonnet medium, at most 12 turns. No deployments or external business effects.
 model: sonnet
 effort: medium
 maxTurns: 12
