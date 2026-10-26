@@ -1,0 +1,37 @@
+{
+  "schema": "ubermind.v11.distillation.local-validation.v1",
+  "date": "2026-10-26",
+  "base_commit": "498b98c6e49eb52de96c59c97bbbe41e15f2b4d4",
+  "feature_branch": "codex/ubermind-v10-opus-distillation-lab-20261026",
+  "test_command": "python -m unittest discover -s tools/ubermind-cloud -p test_distill_v11.py -q",
+  "tests": {
+    "passed": 23,
+    "failed": 0,
+    "environment": "ChatGPT isolated Python container; remote Claude Cloud execution not run"
+  },
+  "files_sha256": {
+    "tools/ubermind-cloud/distill_v11.py": "98a09432f53e950e744d1ac639082cbdeee33e5c9891c9909dbede02fbfcc565",
+    "tools/ubermind-cloud/test_distill_v11.py": "128507d2349300e9c506f67456c099fc39cc44bee9fdcb1711919de63116c1fe",
+    ".claude/rules/ubermind-v11-distillation.md": "bec57c60d09fa8a4670b5329efcb92ec90d4f9b33bed98f819fad0a0e98b0c2a",
+    "docs/UBERMIND_V11_DISTILLATION_LAB.md": "0068110341367f5c621442abc426b21fed6ec4196a63c8e193343d1a1bfcf374"
+  },
+  "remote_readback": "All four file contents byte-for-byte match tested artifacts as exact UTF-8 strings",
+  "synthetic_benchmark": {
+    "tasks": 20,
+    "opus_proxy": 160,
+    "distilled_proxy": 30,
+    "modeled_savings_percent": 81.25,
+    "multiplier": 5.333,
+    "real_model_inferences": 0
+  },
+  "claims": {
+    "opus_quality_equivalence_verified": false,
+    "claude_pro_meter_savings_verified": false,
+    "live_cloud_routing_with_v11_verified": false,
+    "source_authenticity_verified": false
+  },
+  "spend_usd": 0,
+  "production_changes": false,
+  "main_modified": false,
+  "next_test": "Read-only cloud task: verify rule loaded, build 1 source-locked low-risk synthetic recipe, run offline tests, inspect actual model traces. Then 20 blinded matched tasks with meter windows only if authorized subscription usage budget permits."
+}
