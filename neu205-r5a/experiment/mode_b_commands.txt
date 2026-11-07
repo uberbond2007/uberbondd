@@ -1,0 +1,20 @@
+next question
+repeat that
+read the answer
+go back
+stop
+slower
+faster
+show the page
+explain more
+give an example
+start quiz
+skip
+yes
+no
+mark as wrong
+mark as right
+summarize
+open notes
+save this
+help
