@@ -1,0 +1,78 @@
+{
+  "reproduced_utc": "2026-11-11T17:54:45.629623+00:00",
+  "command": "python tools/run_verification.py (unmodified V4 tree, scratch copy)",
+  "exit_code": 0,
+  "stdout": [
+    "serial_transport_tests PASS",
+    "release_checks PASS",
+    "cad_geometry PASS",
+    "cad_meshes PASS",
+    "cpp_to_python_protocol PASS C++ CRC32 encoder -> Python strict JPEG decoder passed; width=640, height=360, bytes=19147",
+    "PASS_STEPS 5 FAIL_STEPS 0"
+  ],
+  "v4_receipt_regenerated": {
+    "utc": "2026-11-11T17:54:45.618382+00:00",
+    "phase": "DIGITAL_ONLY",
+    "physical_hardware_tested": false,
+    "esp32_arduino_firmware_compiled": false,
+    "steps": [
+      {
+        "name": "serial_transport_tests",
+        "command": [
+          "/tmp/claude-0/-home-user-uberbondd/198c983d-c6aa-59a9-b111-da4d3f71827e/scratchpad/tools/venv/bin/python",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "host/tests",
+          "-v"
+        ],
+        "exit_code": 0,
+        "log": "c) ... ok\ntest_bad_crc (test_usb_packet.PacketTests.test_bad_crc) ... ok\ntest_bad_dimensions (test_usb_packet.PacketTests.test_bad_dimensions) ... ok\ntest_header_mismatch (test_usb_packet.PacketTests.test_header_mismatch) ... ok\ntest_invalid_count (test_usb_packet.PacketTests.test_invalid_count) ... ok\ntest_jpeg_marker_does_not_suffice (test_usb_packet.PacketTests.test_jpeg_marker_does_not_suffice) ... ok\ntest_serial_prefix (test_usb_packet.PacketTests.test_serial_prefix) ... ok\ntest_truncated_body (test_usb_packet.PacketTests.test_truncated_body) ... ok\ntest_truncated_header (test_usb_packet.PacketTests.test_truncated_header) ... ok\ntest_valid (test_usb_packet.PacketTests.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.337s\n\nOK\n"
+      },
+      {
+        "name": "release_checks",
+        "command": [
+          "/tmp/claude-0/-home-user-uberbondd/198c983d-c6aa-59a9-b111-da4d3f71827e/scratchpad/tools/venv/bin/python",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "checks",
+          "-p",
+          "test_release_integrity.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "log": "\ntest_not_covert_firmware (test_release_integrity.ReleaseChecks.test_not_covert_firmware) ... ok\ntest_report_references_unverified (test_release_integrity.ReleaseChecks.test_report_references_unverified) ... ok\ntest_stl_step_exists (test_release_integrity.ReleaseChecks.test_stl_step_exists) ... ok\ntest_wiring_source_exists (test_release_integrity.ReleaseChecks.test_wiring_source_exists) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\nOK\n"
+      },
+      {
+        "name": "cad_geometry",
+        "command": [
+          "/tmp/claude-0/-home-user-uberbondd/198c983d-c6aa-59a9-b111-da4d3f71827e/scratchpad/tools/venv/bin/python",
+          "checks/validate_cad.py"
+        ],
+        "exit_code": 0,
+        "log": "S | Strap opening x=-35 clear through plate | 0.0\nPASS | Strap opening x=35 clear through plate | 0.0\nPASS | M3 mount through-hole (-26,-7) | 0.0\nPASS | Recessed-head pocket (-26,-7) | 0.0\nPASS | M3 mount through-hole (-26,15) | 0.0\nPASS | Recessed-head pocket (-26,15) | 0.0\nPASS | M3 mount through-hole (26,-7) | 0.0\nPASS | Recessed-head pocket (26,-7) | 0.0\nPASS | M3 mount through-hole (26,15) | 0.0\nPASS | Recessed-head pocket (26,15) | 0.0\nPASS | Cable-tie opening (-5.5,23)\nPASS | Cable-tie opening (5.5,23)\nPASS | Board has two long sides accessible\nPASS | Clamp lip overlaps 40mm nominal PCB at both sides\nPASS | Total assembled body height estimated rather than carrier-only\nPASS | Estimated max accessory spending not yet fully known | BOM says UNKNOWN for necessary extras\nTOTAL 28 / 28\n\n"
+      },
+      {
+        "name": "cad_meshes",
+        "command": [
+          "/tmp/claude-0/-home-user-uberbondd/198c983d-c6aa-59a9-b111-da4d3f71827e/scratchpad/tools/venv/bin/python",
+          "checks/validate_exported_meshes.py"
+        ],
+        "exit_code": 0,
+        "log": " Adjustable_Edge_Retainer_V2 STEP exists \nPASS Nominal_PCB_Gauge_DO_NOT_MOUNT watertight \nPASS Nominal_PCB_Gauge_DO_NOT_MOUNT winding \nPASS Nominal_PCB_Gauge_DO_NOT_MOUNT volume 1728.0\nPASS Nominal_PCB_Gauge_DO_NOT_MOUNT size [np.float64(40.0), np.float64(27.0), np.float64(1.6)]\nPASS Nominal_PCB_Gauge_DO_NOT_MOUNT STEP exists \nPASS nominal 40mm board fits within 84mm plate \nPASS nominal 27mm board fits within 58mm plate \nPASS four board-support centers within 40x27 envelope \nPASS right/left retainer nominal overlap >0 \nPASS strap slots remain inside base \nPASS camera label not on PCB footprint \nPASS assembled height estimate distinguishes plate+lift+board \nPASS A4 PDF template present \nPASS bill of materials present \nPASS source ledger present \nPASS wiring diagram present \nRESULT 26 / 26\n\n"
+      },
+      {
+        "name": "cpp_to_python_protocol",
+        "command": "g++ -std=c++17 ... && packet_emitter JPG W H && Python decode_packet",
+        "exit_code": 0,
+        "log": "C++ CRC32 encoder -> Python strict JPEG decoder passed; width=640, height=360, bytes=19147"
+      }
+    ],
+    "passed": 5,
+    "failed": 0
+  },
+  "note": "REPRODUCED here; the receipt inside source_v4/ is the REPORTED original and is untouched."
+}

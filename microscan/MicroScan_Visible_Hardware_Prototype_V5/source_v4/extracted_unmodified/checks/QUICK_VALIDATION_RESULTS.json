@@ -1,0 +1,153 @@
+{
+  "scope": "digital CAD STL + document presence and nominal math only",
+  "tests": 26,
+  "passed": 26,
+  "failed": 0,
+  "tests_detail": [
+    {
+      "test": "Open_Camera_Carrier_V2 watertight",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Open_Camera_Carrier_V2 winding",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Open_Camera_Carrier_V2 volume",
+      "passed": true,
+      "observed": 15217.0
+    },
+    {
+      "test": "Open_Camera_Carrier_V2 size",
+      "passed": true,
+      "observed": [
+        84.0,
+        58.0,
+        8.3
+      ]
+    },
+    {
+      "test": "Open_Camera_Carrier_V2 STEP exists",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Adjustable_Edge_Retainer_V2 watertight",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Adjustable_Edge_Retainer_V2 winding",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Adjustable_Edge_Retainer_V2 volume",
+      "passed": true,
+      "observed": 162.7
+    },
+    {
+      "test": "Adjustable_Edge_Retainer_V2 size",
+      "passed": true,
+      "observed": [
+        14.0,
+        6.0,
+        2.8
+      ]
+    },
+    {
+      "test": "Adjustable_Edge_Retainer_V2 STEP exists",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Nominal_PCB_Gauge_DO_NOT_MOUNT watertight",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Nominal_PCB_Gauge_DO_NOT_MOUNT winding",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "Nominal_PCB_Gauge_DO_NOT_MOUNT volume",
+      "passed": true,
+      "observed": 1728.0
+    },
+    {
+      "test": "Nominal_PCB_Gauge_DO_NOT_MOUNT size",
+      "passed": true,
+      "observed": [
+        40.0,
+        27.0,
+        1.6
+      ]
+    },
+    {
+      "test": "Nominal_PCB_Gauge_DO_NOT_MOUNT STEP exists",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "nominal 40mm board fits within 84mm plate",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "nominal 27mm board fits within 58mm plate",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "four board-support centers within 40x27 envelope",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "right/left retainer nominal overlap >0",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "strap slots remain inside base",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "camera label not on PCB footprint",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "assembled height estimate distinguishes plate+lift+board",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "A4 PDF template present",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "bill of materials present",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "source ledger present",
+      "passed": true,
+      "observed": null
+    },
+    {
+      "test": "wiring diagram present",
+      "passed": true,
+      "observed": null
+    }
+  ],
+  "physical_fit": false,
+  "camera_firmware": false,
+  "camera_image_captured": false
+}

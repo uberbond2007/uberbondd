@@ -1,0 +1,164 @@
+{
+  "performed": "2026-11-10",
+  "tests": 28,
+  "passed": 28,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Open_Camera_Carrier_V2 mesh watertight",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Open_Camera_Carrier_V2 consistent winding",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Open_Camera_Carrier_V2 nonzero volume",
+      "pass": true,
+      "evidence": 15217.0
+    },
+    {
+      "name": "Open_Camera_Carrier_V2 dimensions mm",
+      "pass": true,
+      "evidence": [
+        84.0,
+        58.0,
+        8.3
+      ]
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V2 mesh watertight",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V2 consistent winding",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V2 nonzero volume",
+      "pass": true,
+      "evidence": 162.7
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V2 dimensions mm",
+      "pass": true,
+      "evidence": [
+        14.0,
+        6.0,
+        2.8
+      ]
+    },
+    {
+      "name": "Nominal_PCB_Gauge_DO_NOT_MOUNT mesh watertight",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Nominal_PCB_Gauge_DO_NOT_MOUNT consistent winding",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Nominal_PCB_Gauge_DO_NOT_MOUNT nonzero volume",
+      "pass": true,
+      "evidence": 1728.0
+    },
+    {
+      "name": "Nominal_PCB_Gauge_DO_NOT_MOUNT dimensions mm",
+      "pass": true,
+      "evidence": [
+        40.0,
+        27.0,
+        1.6
+      ]
+    },
+    {
+      "name": "Strap opening x=-35 clear through plate",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Strap opening x=35 clear through plate",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "M3 mount through-hole (-26,-7)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Recessed-head pocket (-26,-7)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "M3 mount through-hole (-26,15)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Recessed-head pocket (-26,15)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "M3 mount through-hole (26,-7)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Recessed-head pocket (26,-7)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "M3 mount through-hole (26,15)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Recessed-head pocket (26,15)",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Cable-tie opening (-5.5,23)",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Cable-tie opening (5.5,23)",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Board has two long sides accessible",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Clamp lip overlaps 40mm nominal PCB at both sides",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Total assembled body height estimated rather than carrier-only",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Estimated max accessory spending not yet fully known",
+      "pass": true,
+      "evidence": "BOM says UNKNOWN for necessary extras"
+    }
+  ],
+  "physical_board_available": false,
+  "actual_board_fit_verified": false,
+  "camera_power_tested": false,
+  "device_function_tested": false
+}

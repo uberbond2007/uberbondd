@@ -1,0 +1,577 @@
+{
+  "scope": "V5 digital CAD self-consistency against a NOMINAL, UNVERIFIED HW-818 envelope",
+  "tests": 100,
+  "passed": 100,
+  "failed": 0,
+  "derived": {
+    "carrier_volume_mm3": 16573.2,
+    "carrier_mass_g_solid_PETG_upper_bound": 21.0,
+    "four_retainers_mass_g_solid_PETG": 0.87,
+    "gauge_mass_g_solid_PETG": 2.6,
+    "pcb_underside_z_mm": 11.14,
+    "pcb_top_z_mm": 12.74,
+    "estimated_total_height_mm_UNVERIFIED": 19.24,
+    "usb_end_x_mm": 8.5,
+    "fasteners": {
+      "M3x12": {
+        "thread_past_nut_mm": -3.54,
+        "full_nut_engagement": false
+      },
+      "M3x15": {
+        "thread_past_nut_mm": -0.54,
+        "full_nut_engagement": false
+      },
+      "M3x16": {
+        "thread_past_nut_mm": 0.46,
+        "full_nut_engagement": true
+      },
+      "M3x20": {
+        "thread_past_nut_mm": 4.46,
+        "full_nut_engagement": true
+      },
+      "M3x25": {
+        "thread_past_nut_mm": 9.46,
+        "full_nut_engagement": true
+      }
+    },
+    "retainer_overlap_range_mm": [
+      -0.95,
+      3.95
+    ]
+  },
+  "results": [
+    {
+      "name": "Open_Camera_Carrier_V5 STL watertight",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Open_Camera_Carrier_V5 STL winding consistent",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Open_Camera_Carrier_V5 STL extents mm",
+      "pass": true,
+      "evidence": [
+        84.0,
+        58.0,
+        12.74
+      ]
+    },
+    {
+      "name": "Open_Camera_Carrier_V5 STL volume within 0.5% of B-rep",
+      "pass": true,
+      "evidence": {
+        "stl_mm3": 16572.9,
+        "brep_mm3": 16573.2
+      }
+    },
+    {
+      "name": "Open_Camera_Carrier_V5 STEP re-imports as one solid",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V5 STL watertight",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V5 STL winding consistent",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V5 STL extents mm",
+      "pass": true,
+      "evidence": [
+        14.0,
+        6.0,
+        3.0
+      ]
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V5 STL volume within 0.5% of B-rep",
+      "pass": true,
+      "evidence": {
+        "stl_mm3": 172.2,
+        "brep_mm3": 172.2
+      }
+    },
+    {
+      "name": "Adjustable_Edge_Retainer_V5 STEP re-imports as one solid",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT STL watertight",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT STL winding consistent",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT STL extents mm",
+      "pass": true,
+      "evidence": [
+        48.5,
+        27.0,
+        1.6
+      ]
+    },
+    {
+      "name": "HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT STL volume within 0.5% of B-rep",
+      "pass": true,
+      "evidence": {
+        "stl_mm3": 2047.1,
+        "brep_mm3": 2047.0
+      }
+    },
+    {
+      "name": "HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT STEP re-imports as one solid",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Carrier keeps the 84 x 58 mm footprint from V2",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Strap slot y=-24.5 open for a 20 mm strap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Strap slot y=-24.5 edge web >= 2.4 mm",
+      "pass": true,
+      "evidence": 2.5
+    },
+    {
+      "name": "Cable-tie window y=-6.4 open",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Strap slot y=24.5 open for a 20 mm strap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Strap slot y=24.5 edge web >= 2.4 mm",
+      "pass": true,
+      "evidence": 2.5
+    },
+    {
+      "name": "Cable-tie window y=6.4 open",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Skin-side tie channel lets the tie sit flush",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "M3 clearance hole (-21.0,-17.5) through",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Pan-head pocket (-21.0,-17.5) admits dk6.0 x k2.4 head below skin face",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Wall between pocket (-21.0,-17.5) and strap slot >= 1.2 mm",
+      "pass": true,
+      "evidence": 1.7
+    },
+    {
+      "name": "M3 clearance hole (-21.0,17.5) through",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Pan-head pocket (-21.0,17.5) admits dk6.0 x k2.4 head below skin face",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Wall between pocket (-21.0,17.5) and strap slot >= 1.2 mm",
+      "pass": true,
+      "evidence": 1.7
+    },
+    {
+      "name": "M3 clearance hole (-6.5,-17.5) through",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Pan-head pocket (-6.5,-17.5) admits dk6.0 x k2.4 head below skin face",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Wall between pocket (-6.5,-17.5) and strap slot >= 1.2 mm",
+      "pass": true,
+      "evidence": 1.7
+    },
+    {
+      "name": "M3 clearance hole (-6.5,17.5) through",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Pan-head pocket (-6.5,17.5) admits dk6.0 x k2.4 head below skin face",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Wall between pocket (-6.5,17.5) and strap slot >= 1.2 mm",
+      "pass": true,
+      "evidence": 1.7
+    },
+    {
+      "name": "Solid floor under pin troughs >= 1.6 mm",
+      "pass": true,
+      "evidence": 1.8000000000000003
+    },
+    {
+      "name": "Plate is unbroken beneath pin row y=-11.43",
+      "pass": true,
+      "evidence": 126.99
+    },
+    {
+      "name": "Plate is unbroken beneath pin row y=11.43",
+      "pass": true,
+      "evidence": 126.99
+    },
+    {
+      "name": "Nominal pin tips stay >= 0.5 mm above trough floor",
+      "pass": true,
+      "evidence": 0.7
+    },
+    {
+      "name": "Header plastic bearing ledge each side >= 0.5 mm",
+      "pass": true,
+      "evidence": 0.52
+    },
+    {
+      "name": "Rail wall beside trough >= 1.2 mm (3 perimeters @0.4)",
+      "pass": true,
+      "evidence": 1.5499999999999998
+    },
+    {
+      "name": "Row-spacing float available each side (mm)",
+      "pass": true,
+      "evidence": 0.43
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL pcb",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL header_bodies",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL header_pins",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL solder_tails",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL module",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL usb_plug",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "Carrier does not intersect NOMINAL camera_stack",
+      "pass": true,
+      "evidence": 0.0
+    },
+    {
+      "name": "USB plug underside clears plate top by >= 1.0 mm",
+      "pass": true,
+      "evidence": 2.59
+    },
+    {
+      "name": ">= 6 mm between nominal plug end and cable saddle for the boot",
+      "pass": true,
+      "evidence": 8.5
+    },
+    {
+      "name": "Plug, boot and saddle stay inside the plate outline",
+      "pass": true,
+      "evidence": 39.0
+    },
+    {
+      "name": "Board outline inside plate with >= 1.5 mm margin",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Open air gap under module can >= 3 mm (convection, no skin contact)",
+      "pass": true,
+      "evidence": 4.74
+    },
+    {
+      "name": "Retainer 1 does not cut into carrier",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL pcb at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL header_bodies at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL header_pins at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL solder_tails at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL module at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL usb_plug at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 1 clear of NOMINAL camera_stack at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 does not cut into carrier",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL pcb at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL header_bodies at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL header_pins at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL solder_tails at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL module at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL usb_plug at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 2 clear of NOMINAL camera_stack at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 does not cut into carrier",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL pcb at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL header_bodies at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL header_pins at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL solder_tails at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL module at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL usb_plug at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 3 clear of NOMINAL camera_stack at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 does not cut into carrier",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL pcb at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL header_bodies at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL header_pins at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL solder_tails at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL module at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL usb_plug at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Retainer 4 clear of NOMINAL camera_stack at 1.0 mm overlap",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Nominal retainer overlap on PCB edge is 1.0 mm",
+      "pass": true,
+      "evidence": 1.0
+    },
+    {
+      "name": "Slot travel lets a retainer fully release the board",
+      "pass": true,
+      "evidence": -0.95
+    },
+    {
+      "name": "Slot travel reaches >= 3 mm overlap for a narrower real board",
+      "pass": true,
+      "evidence": 3.95
+    },
+    {
+      "name": "At 1.0 mm overlap the retainer tip is >= 0.5 mm from pin tails",
+      "pass": true,
+      "evidence": 0.75
+    },
+    {
+      "name": "Documented maximum overlap before fouling solder fillets (mm)",
+      "pass": true,
+      "evidence": 1.15
+    },
+    {
+      "name": "Grip length head-seat to retainer top (mm)",
+      "pass": true,
+      "evidence": 13.14
+    },
+    {
+      "name": "M3x16 gives full nut engagement",
+      "pass": true,
+      "evidence": {
+        "thread_past_nut_mm": 0.46,
+        "full_nut_engagement": true
+      }
+    },
+    {
+      "name": "M3x20 gives full nut engagement",
+      "pass": true,
+      "evidence": {
+        "thread_past_nut_mm": 4.46,
+        "full_nut_engagement": true
+      }
+    },
+    {
+      "name": "M3x15 is correctly REJECTED (too short)",
+      "pass": true,
+      "evidence": {
+        "thread_past_nut_mm": -0.54,
+        "full_nut_engagement": false
+      }
+    },
+    {
+      "name": "Fastener points away from skin (head recessed, excess thread upward)",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Material left under pillar at pocket >= 0.5 mm",
+      "pass": true,
+      "evidence": 0.6
+    },
+    {
+      "name": "Engraved CAMERA label present at y=-18.5",
+      "pass": true,
+      "evidence": 28.5
+    },
+    {
+      "name": "Engraved CAMERA label present at y=18.5",
+      "pass": true,
+      "evidence": 28.5
+    },
+    {
+      "name": "Nothing in the carrier stands above the PCB top plane (lens and LED uncovered)",
+      "pass": true,
+      "evidence": 12.74
+    }
+  ],
+  "physical_board_available": false,
+  "actual_board_fit_verified": false,
+  "printed": false
+}

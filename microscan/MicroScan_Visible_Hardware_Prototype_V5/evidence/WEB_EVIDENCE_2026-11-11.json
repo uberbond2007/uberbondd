@@ -1,0 +1,265 @@
+{
+  "fetched_utc": "2026-11-11T17:25Z-17:33Z",
+  "method": "HTTPS GET from the build sandbox; schema.org JSON-LD and visible text parsed offline. Raw HTML/PNG are NOT redistributed (third-party content); SHA-256 of the bytes received is recorded so the fetch can be compared.",
+  "records": [
+    {
+      "id": "E1",
+      "url": "https://mostelectronic.com/shop/arduino-development-boards/esp32-cam-ov2640-ch340-camera-micro-usb/",
+      "sha256": "2ec6227756dbe881da2a1f900d01f3692e3031f2446615be3f4c7e83f7cf45be",
+      "class": "RETAILER LISTING",
+      "facts": {
+        "name": "ESP32-CAM RHYX-M21-45 Camera (with micro usb )",
+        "sku": "ME-31692",
+        "price_EGP": "499.00",
+        "list_price_EGP": "572.98",
+        "availability": "schema.org/InStock",
+        "package": "ESP32-CAM board, camera and micro USB base.",
+        "usage_tip": "Use a stable 5V 2A supply; brownouts are the most common cause of resets.",
+        "page_title": "ESP32-CAM with Micro USB Board | Most Electronics",
+        "not_on_page_today": [
+          "40x27x12 mm",
+          "180 mA / 310 mA",
+          "OV2640 in the product name",
+          "CH340"
+        ],
+        "note": "URL slug still says ov2640-ch340; the product NAME now says RHYX-M21-45. V4 recorded 40x27x12 mm, OV2640 and 180 mA for this URL on 2026-11-10; none of those strings are in the product section fetched on 2026-11-11."
+      }
+    },
+    {
+      "id": "E2",
+      "url": "https://mostelectronic.com/wp-content/uploads/2025/11/Screenshot-2026-01-21-131246.png",
+      "sha256": "fee2969d2cd609d0cd171d8058c0f68a3b8740ffebca3d456fa65a87c3e5f253",
+      "class": "RETAILER PHOTO",
+      "facts": {
+        "observed": [
+          "two faces of one PCB",
+          "silk 'HW-818' beside an ESP-32S module with PCB antenna and u.FL",
+          "Micro-USB receptacle, RST and FLASH buttons, SOT-223 regulator and LED1 on the module face",
+          "camera face: SD slot, camera head with flex label 'RHYX M21-45', 24-pin FPC connector, white LED at the corner near the USB end, silk 'ESP32-CAM'",
+          "header silk: 5V GND IO12 IO13 IO15 IO14 IO2 IO4 / 3V3 IO16 IO0 GND VCC U0R U0T GND",
+          "outline aspect ~1.81 (815 px / 450 px)"
+        ],
+        "limits": "A catalogue photo is not the unit that will be delivered."
+      }
+    },
+    {
+      "id": "E3",
+      "url": "https://mostelectronic.com/wp-content/uploads/2025/11/Screenshot-2026-01-21-131613.png",
+      "sha256": "e4f32379f07aca0288522580ab32cbdcda9efea2ffe13e41a6487ebb0201dc0b",
+      "class": "RETAILER PHOTO",
+      "facts": {
+        "observed": [
+          "male pin headers soldered, pins pointing away from the camera face",
+          "RHYX M21-45 flex label",
+          "white LED on camera face"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "url": "https://mostelectronic.com/shop/sensors/ov2640-camera-for-esp32-cam/",
+      "sha256": null,
+      "class": "RETAILER LISTING (read through a fetch agent; first 40 kB verbatim)",
+      "facts": {
+        "name": "RHYX-M21-45 2MP Camera Module for ESP32-CAM",
+        "sku": "ME-30288",
+        "price_EGP": "99.00",
+        "statements": [
+          "This camera is RHYX-M21-45 and is not an OV2640 camera.",
+          "Output Formats: RGB565, YCbCr422 and Raw Bayer",
+          "Hardware JPEG Encoding: Not Supported",
+          "Lens: Integrated Fixed-Focus Lens",
+          "Maximum resolution: 1600 x 1200 pixels",
+          "Connection: 24-Pin FPC Ribbon Cable"
+        ],
+        "note": "V4 recorded 120 EGP for this item on 2026-11-10; 99.00 on 2026-11-11."
+      }
+    },
+    {
+      "id": "E5",
+      "url": "https://mostelectronic.com/shop/wires-crocodiles/usb-a-to-micro-usb-data-cable-1m/",
+      "sha256": "70a3fdb2f76162d0df2938031313784c1166c3c60cfcb8fc63d890825f2dc73f",
+      "class": "RETAILER LISTING",
+      "facts": {
+        "name": "USB-A to Micro USB Data Cable - 1m",
+        "sku": "ME-22356",
+        "price_EGP": "49.50",
+        "availability": "schema.org/InStock",
+        "note": "V4 recorded 45 EGP."
+      }
+    },
+    {
+      "id": "E6",
+      "url": "https://mostelectronic.com/shop/arduino-development-boards/esp32-cam-development-board-with-camera/",
+      "sha256": "6ec97f4c156cc6203bc6273ee59ed6fd61428c4afa6f857a79345bad6b204060",
+      "class": "RETAILER LISTING",
+      "facts": {
+        "name": "ESP32-CAM Development Board (OV2640 camera)",
+        "sku": "ME-11814",
+        "price_EGP": "599.00",
+        "availability": "schema.org/InStock"
+      }
+    },
+    {
+      "id": "E7",
+      "url": "https://mostelectronic.com/shop/arduino-development-boards/esp32-cam-mb-micro-usb-download-module-for-esp32-cam/",
+      "sha256": "0377ea667ea78915a2d95736d71433fd4eb3c53233482dfa164b8f41f34fe84d",
+      "class": "RETAILER LISTING",
+      "facts": {
+        "name": "ESP32CAM-Shield Micro USB",
+        "sku": "ME-18384",
+        "price_EGP": "99.00",
+        "availability": "schema.org/InStock"
+      }
+    },
+    {
+      "id": "E8",
+      "url": "https://mostelectronic.com/shop/arduino-development-boards/esp32-cam-development-board-with-rhyx-m21-45-camera/",
+      "sha256": "cb2d8c614fbc6a760b5cebcdf3fa148562907c93b919e1f85f1c913f393ccade",
+      "class": "RETAILER LISTING",
+      "facts": {
+        "name": "ESP32-CAM Development Board ( with out camera)",
+        "sku": "ME-33563",
+        "price_EGP": "400.00",
+        "availability": "schema.org/InStock"
+      }
+    },
+    {
+      "id": "E9",
+      "url": "https://mostelectronic.com/3d-printing/",
+      "sha256": "e880c447e21ba9fedcd802d94bb68a57c257123b3401655d1b48f1eff84d6a55",
+      "class": "RETAILER SERVICE PAGE",
+      "facts": {
+        "rates_EGP_per_gram": {
+          "PLA+": 3,
+          "ABS+": 4,
+          "e-TPU": 6
+        },
+        "PETG": "offered ('PLA+, PETG, ABS+ and TPU'); per-gram rate NOT STATED",
+        "minimum_order": "a minimum-order top-up line exists in the calculator; amount NOT STATED",
+        "pricing_basis": "estimate by material weight, confirmed on WhatsApp before printing",
+        "printers": "Elegoo and Neptune 3 & 4"
+      }
+    },
+    {
+      "id": "E10",
+      "url": "https://mostelectronic.com/product-category/cnc-3d-printer-parts/screws-fastners/",
+      "sha256": "b6a756d5f55dd9068bf16f0d7278a016b29640a52a2e86f164089724d13ebfc1",
+      "class": "RETAILER CATEGORY PAGE",
+      "facts": {
+        "Screw M3x20mm (+ Head)": "1.73 EGP",
+        "Screw M3x15mm (+ Head)": "1.80 EGP",
+        "Screw M3x25mm (+ Head)": "2.02 EGP",
+        "Lock nut M3": "0.65 EGP",
+        "material": "NOT STATED (assume steel)",
+        "M3x16": "not listed",
+        "nylon M3 screws": "not listed"
+      }
+    },
+    {
+      "id": "E11",
+      "url": "https://makerselectronics.com/product-category/tools-measurements/nuts-and-bolts/",
+      "sha256": "1b8d3f986847e12b4518b1dff97c975b87a0d2a20c3dd3612ed390e07c424e69",
+      "class": "RETAILER CATEGORY PAGE",
+      "facts": {
+        "M3 Screw with Nut Set 10pcs": "6.00 EGP (length and material NOT STATED)",
+        "Nylon Standoff PCB Spacer 12mmx3mm (10 Pcs)": "12.00 EGP",
+        "MADA-16 Nylon Standoff Spacer 16mm": "1.50 EGP"
+      }
+    },
+    {
+      "id": "E12",
+      "url": "https://makerselectronics.com/product/esp32-cam-esp32-s-wifibluetooth-with-ov2640-camera-module/",
+      "sha256": null,
+      "class": "RETAILER LISTING (fetch-agent summary, partly non-verbatim)",
+      "facts": {
+        "price_EGP": "495.00",
+        "availability": "In Stock",
+        "dimensions": "40x27x12mm",
+        "current": "180mA@5V flash off; 310mA@5V flash max",
+        "note": "This is where the 40x27x12 / 180 mA figures appear today. It is a different product (classic ESP32-CAM without USB)."
+      }
+    },
+    {
+      "id": "E13",
+      "url": "https://makerlab.ph/products/esp32-cam-ch340-usb-serial-to-bluetooth-and-wifi-camera-development-board",
+      "sha256": null,
+      "class": "THIRD-PARTY SELLER DATASHEET (fetch agent)",
+      "facts": {
+        "model": "HW-818",
+        "size": "27*48.5*4.5mm",
+        "power": "micro USB",
+        "download": "press FLASH button (always press), then connect the MICRO USB port",
+        "image_format": "JPEG (OV2640 only), BMP, GRAYSCALE",
+        "not_stated": [
+          "schematic",
+          "USB position",
+          "auto-reset",
+          "LED GPIOs"
+        ]
+      }
+    },
+    {
+      "id": "E14",
+      "url": "https://probots.co.in/technical_data/Setup_Guide_%20ESP32-CAM_with_RHYX%20M21-45_Camera.pdf",
+      "sha256": null,
+      "class": "THIRD-PARTY SELLER GUIDE (PDF text extracted locally)",
+      "facts": {
+        "statements": [
+          "If your ESP32-CAM came with a camera module labeled RHYX M21-45 (or GC2145), it is not compatible with the default settings",
+          "The RHYX M21-45 does not support JPEG. It only supports Raw Color (RGB565).",
+          "Ensure only the AI_THINKER model is uncommented",
+          "config.pixel_format = PIXFORMAT_RGB565; config.frame_size = FRAMESIZE_QVGA;",
+          "If you try to use UXGA or SVGA with RGB565 mode, the data is too large for the ESP32 to handle, and the stream will crash.",
+          "Error 0x106 (ESP_ERR_NOT_SUPPORTED) / Error 0x105 (ESP_ERR_NOT_FOUND)"
+        ]
+      }
+    },
+    {
+      "id": "E15",
+      "url": "https://github.com/prusa3d/Prusa-Firmware-ESP32-Cam/issues/75",
+      "sha256": null,
+      "class": "THIRD-PARTY USER REPORT",
+      "facts": {
+        "statements": [
+          "The RHYX labeled camera seems to be a GC2145, not OV2640.",
+          "It doesn't support compression (so no JPEG at all)",
+          "Also you may need to limit resolution to QVGA or QQVGA."
+        ],
+        "note": "reporter's board was an ESP32-S3-CAM, not HW-818"
+      }
+    },
+    {
+      "id": "E16",
+      "url": "https://github.com/YigitMusstafa/rhyx-m21-45-esp32-cam-web-server-code",
+      "sha256": null,
+      "class": "THIRD-PARTY HOBBY REPO (1 star)",
+      "facts": {
+        "claims": "AI-Thinker pin map; PIXFORMAT_JPEG at VGA 'works'",
+        "conflict": "contradicts E4, E14 and E15 on JPEG; no evidence shown"
+      }
+    },
+    {
+      "id": "E17",
+      "url": "https://github.com/espressif/arduino-esp32 (framework-arduinoespressif32 3.20017.241212, files read from the installed toolchain)",
+      "sha256": null,
+      "class": "VERIFIED - MANUFACTURER SOFTWARE",
+      "facts": {
+        "sensor.h": "GC2145_PID = 0x2145; OV2640_PID = 0x26",
+        "sdkconfig": "CONFIG_GC2145_SUPPORT=y, CONFIG_OV2640_SUPPORT=y",
+        "boards.txt": "esp32cam: -DBOARD_HAS_PSRAM, partitions huge_app, flash 4MB",
+        "img_converters.h": "frame2jpg_cb / fmt2jpg_cb software JPEG encoder present"
+      }
+    },
+    {
+      "id": "E18",
+      "url": "https://esp32.com/viewtopic.php?p=152133",
+      "sha256": null,
+      "class": "NOT READ",
+      "facts": {
+        "title": "Got an ESP32-CAM with USB & CH340 - Does Anyone Have the Schematic?",
+        "status": "bot-challenge page; a schematic may be linked there; not obtained"
+      }
+    }
+  ]
+}

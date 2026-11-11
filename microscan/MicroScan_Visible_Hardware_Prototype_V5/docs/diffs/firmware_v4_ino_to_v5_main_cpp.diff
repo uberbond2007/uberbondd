@@ -1,0 +1,344 @@
+--- source_v4/extracted_unmodified/firmware/VISIBLE_USB_CAMERA_DIAGNOSTIC.ino	2026-11-10 00:00:00.000000000 +0000
++++ firmware/microscan_hw818_candidate/src/main.cpp	2026-11-11 17:45:21.911831034 +0000
+@@ -1,26 +1,68 @@
+-/* MicroScan V3 OPEN / USB-TETHERED laboratory camera diagnostic.
+- * No wireless services, no background capture, no covert trigger.
+- * Operator must explicitly send CAPTURE over the wired serial link.
+- * Capture indicator must be electrically identified and tested first.
+- * RHYX-M21/AI-Thinker pin similarity is THIRD-PARTY REPORTED, NOT manufacturer-proven.
+- * Fails compile until board pin mapping AND capture LED are personally verified.
+- * No physical RHYX board has been tested by the author.
++/* MicroScan V5 OPEN / USB-TETHERED document-camera diagnostic - HW-818 CANDIDATE.
++ *
++ * Derived from V4 firmware/VISIBLE_USB_CAMERA_DIAGNOSTIC.ino (kept unmodified in source_v4/).
++ * No Wi-Fi, no Bluetooth, no SD card, no background or repeated capture, no hidden trigger.
++ * One frame leaves the board only when an operator types CAPTURE on the wired serial link,
++ * and only while the capture indicator output is latched ON.
++ *
++ * EVIDENCE STATUS (see docs/HARDWARE_IDENTITY.md):
++ *   - Camera pin map below is the Espressif CAMERA_MODEL_AI_THINKER map. For the RHYX M21-45
++ *     camera on an "ESP32-CAM" board a seller guide and one hobby repo say this map works.
++ *     No schematic of the HW-818 board has been obtained. => UNVERIFIED for this board.
++ *   - The listing photo shows a white LED on the camera face. GPIO4 is its usual net on
++ *     AI-Thinker-compatible boards. Not measured. => UNVERIFIED.
++ * Therefore the two V4 gates stay at 0 and a capture-capable build does not compile.
+  */
+ #include <Arduino.h>
+ #include <esp_camera.h>
++#include <img_converters.h>
+ 
+-// BLOCKER: set to 1 only after physical board pin mapping has been independently verified.
++// BLOCKER 1: set to 1 only after the camera pin map is confirmed ON THE PHYSICAL BOARD
++// (bring-up build prints the sensor PID over SCCB; a wrong map gives init error 0x105).
+ #define MICROSCAN_BOARD_PINS_VERIFIED 0
+-// BLOCKER: set to 1 only after physical flash/status LED GPIO4 is verified visible during exposure.
++// BLOCKER 2: set to 1 only after LAMPTEST is SEEN to light a conspicuous LED on the camera face.
+ #define MICROSCAN_VISIBLE_INDICATOR_VERIFIED 0
+-#if MICROSCAN_BOARD_PINS_VERIFIED != 1
+-  #error "RHYX board camera pin map unverified; refuse hardware build."
++
++// Bring-up mode: compiles with the gates at 0, but CAPTURE is refused at run time.
++#ifndef MICROSCAN_BRINGUP_CAPTURE_LOCKED
++#define MICROSCAN_BRINGUP_CAPTURE_LOCKED 0
++#endif
++
++#if defined(MICROSCAN_HOST_MOCK)
++  // Desktop interlock test harness only. The mock headers define this; a real ESP32 build cannot.
++  #if defined(ARDUINO_ARCH_ESP32) || defined(ESP_PLATFORM)
++    #error "MICROSCAN_HOST_MOCK must never be defined in an ESP32 build."
++  #endif
++#elif MICROSCAN_BRINGUP_CAPTURE_LOCKED == 1
++  #if MICROSCAN_BOARD_PINS_VERIFIED != 0 || MICROSCAN_VISIBLE_INDICATOR_VERIFIED != 0
++    #error "Bring-up (capture-locked) mode is only for boards whose gates are still 0."
++  #endif
++#else
++  #if MICROSCAN_BOARD_PINS_VERIFIED != 1
++    #error "HW-818 camera pin map unverified; refuse capture-capable build."
++  #endif
++  #if MICROSCAN_VISIBLE_INDICATOR_VERIFIED != 1
++    #error "Visible capture indicator unverified; refuse capture-capable build."
++  #endif
++#endif
++
++// Serial rate. CH340 and the ESP32 UART both support these. 115200 is the V4 default.
++#ifndef MICROSCAN_BAUD
++#define MICROSCAN_BAUD 115200
+ #endif
+-#if MICROSCAN_VISIBLE_INDICATOR_VERIFIED != 1
+-  #error "Visible capture indicator GPIO unverified; refuse hardware build."
++static_assert(MICROSCAN_BAUD == 115200 || MICROSCAN_BAUD == 230400 || MICROSCAN_BAUD == 460800 ||
++              MICROSCAN_BAUD == 921600, "Unsupported MICROSCAN_BAUD");
++
++// Frame size used when the sensor has no hardware JPEG (RHYX M21-45 / GC2145 class).
++// RGB565 costs 2 bytes per pixel in PSRAM: SVGA 0.96 MB, XGA 1.57 MB, UXGA 3.84 MB (will not fit with 4 MB).
++#ifndef MICROSCAN_RGB565_FRAMESIZE
++#define MICROSCAN_RGB565_FRAMESIZE FRAMESIZE_SVGA
++#endif
++#ifndef MICROSCAN_SOFT_JPEG_QUALITY
++#define MICROSCAN_SOFT_JPEG_QUALITY 85   // 1..100, software encoder
+ #endif
+ 
+-// Provisional AI-Thinker pin map, based on Espressif camera_pins.h.
++// Provisional pin map: Espressif camera_pins.h, CAMERA_MODEL_AI_THINKER.
+ #define CAM_PWDN 32
+ #define CAM_RESET -1
+ #define CAM_XCLK 0
+@@ -37,81 +79,205 @@
+ #define CAM_VSYNC 25
+ #define CAM_HREF 23
+ #define CAM_PCLK 22
+-#define CAPTURE_INDICATOR_GPIO 4 // Provisional: only valid after physical inspection.
++#define CAPTURE_INDICATOR_GPIO 4  // Provisional: white LED on the camera face.
++
++static const uint32_t INDICATOR_PREROLL_MS = 300;  // light is visibly on before the exposure
++static const uint32_t LAMPTEST_MS = 3000;
++
++// Read at run time so the optimiser cannot delete the capture path from a bring-up build.
++static volatile bool g_capture_locked = (MICROSCAN_BRINGUP_CAPTURE_LOCKED == 1);
++static bool g_initialized = false;
++static pixformat_t g_format = PIXFORMAT_JPEG;
++static esp_err_t g_init_status = ESP_FAIL;
++
++/* ---- Capture indicator interlock -------------------------------------------------------
++ * The ONLY call to esp_camera_fb_get() in this file is inside guarded_fb_get(), which needs a
++ * live IndicatorScope and re-reads the output latch. The indicator is switched off only by the
++ * scope's destructor (and once in setup()). checks/test_firmware_source.py enforces all of this
++ * on the source text; checks/test_firmware_interlock.py enforces the run-time ordering. */
++class IndicatorScope {
++ public:
++  IndicatorScope() { digitalWrite(CAPTURE_INDICATOR_GPIO, HIGH); }
++  ~IndicatorScope() { digitalWrite(CAPTURE_INDICATOR_GPIO, LOW); }
++  IndicatorScope(const IndicatorScope&) = delete;
++  IndicatorScope& operator=(const IndicatorScope&) = delete;
++  // Confirms the GPIO latch, not photons. A dead LED is a physical-inspection item.
++  bool lit() const { return digitalRead(CAPTURE_INDICATOR_GPIO) == HIGH; }
++};
++
++static camera_fb_t* guarded_fb_get(const IndicatorScope& indicator) {
++  if (!indicator.lit()) return nullptr;
++  return esp_camera_fb_get();
++}
+ 
+ static void write_le16(uint16_t n) {
+   Serial.write(uint8_t(n & 255));
+   Serial.write(uint8_t((n >> 8) & 255));
+ }
+ static void write_le32(uint32_t n) {
+-  for (int k=0; k<4; ++k) Serial.write(uint8_t((n >> (8*k)) & 255));
++  for (int k = 0; k < 4; ++k) Serial.write(uint8_t((n >> (8 * k)) & 255));
+ }
+-static uint32_t crc32_bytes(const uint8_t *bytes, size_t n) {
++static uint32_t crc32_bytes(const uint8_t* bytes, size_t n) {
+   uint32_t crc = 0xFFFFFFFFUL;
+-  for(size_t i = 0; i < n; ++i) {
++  for (size_t i = 0; i < n; ++i) {
+     crc ^= bytes[i];
+-    for(int bit=0; bit<8; ++bit) crc = (crc>>1) ^ ((crc&1)?0xEDB88320UL:0);
++    for (int bit = 0; bit < 8; ++bit) crc = (crc >> 1) ^ ((crc & 1) ? 0xEDB88320UL : 0);
+   }
+   return ~crc;
+ }
+-static bool initialized=false;
++
++// Software JPEG sink for sensors without a hardware encoder.
++struct JpegSink {
++  uint8_t* buf;
++  size_t cap;
++  size_t len;
++  bool overflow;
++};
++static size_t jpeg_sink_cb(void* arg, size_t index, const void* data, size_t len) {
++  JpegSink* sink = static_cast<JpegSink*>(arg);
++  if (index + len > sink->cap) {
++    sink->overflow = true;
++    return 0;
++  }
++  memcpy(sink->buf + index, data, len);
++  if (index + len > sink->len) sink->len = index + len;
++  return len;
++}
++
++static camera_config_t make_config(pixformat_t format, framesize_t size, bool psram) {
++  camera_config_t cfg = {};
++  cfg.ledc_channel = LEDC_CHANNEL_0;
++  cfg.ledc_timer = LEDC_TIMER_0;
++  cfg.pin_d0 = CAM_Y2; cfg.pin_d1 = CAM_Y3; cfg.pin_d2 = CAM_Y4; cfg.pin_d3 = CAM_Y5;
++  cfg.pin_d4 = CAM_Y6; cfg.pin_d5 = CAM_Y7; cfg.pin_d6 = CAM_Y8; cfg.pin_d7 = CAM_Y9;
++  cfg.pin_xclk = CAM_XCLK; cfg.pin_pclk = CAM_PCLK;
++  cfg.pin_vsync = CAM_VSYNC; cfg.pin_href = CAM_HREF;
++  cfg.pin_sccb_sda = CAM_SIOD; cfg.pin_sccb_scl = CAM_SIOC;
++  cfg.pin_pwdn = CAM_PWDN; cfg.pin_reset = CAM_RESET;
++  cfg.xclk_freq_hz = 20000000;
++  cfg.pixel_format = format;
++  cfg.frame_size = size;
++  cfg.jpeg_quality = 10;
++  cfg.fb_count = 1;
++  cfg.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
++  cfg.fb_location = psram ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
++  return cfg;
++}
++
++static void camera_bring_up() {
++  const bool psram = psramFound();
++  camera_config_t cfg = make_config(PIXFORMAT_JPEG, psram ? FRAMESIZE_UXGA : FRAMESIZE_VGA, psram);
++  g_format = PIXFORMAT_JPEG;
++  g_init_status = esp_camera_init(&cfg);
++  if (g_init_status == ESP_ERR_NOT_SUPPORTED) {
++    // Documented behaviour of JPEG-less sensors (GC2145 class): retry once as RGB565.
++    esp_camera_deinit();
++    if (!psram) {
++      Serial.println("ERROR sensor has no JPEG and board has no PSRAM for RGB565");
++      return;
++    }
++    cfg = make_config(PIXFORMAT_RGB565, MICROSCAN_RGB565_FRAMESIZE, true);
++    g_format = PIXFORMAT_RGB565;
++    g_init_status = esp_camera_init(&cfg);
++  }
++  g_initialized = (g_init_status == ESP_OK);
++}
++
++static void print_info() {
++  sensor_t* s = g_initialized ? esp_camera_sensor_get() : nullptr;
++  Serial.printf("INFO fw=microscan-v5-hw818-candidate baud=%lu capture_locked=%d pins_verified=%d indicator_verified=%d\n",
++                (unsigned long)MICROSCAN_BAUD, g_capture_locked ? 1 : 0,
++                MICROSCAN_BOARD_PINS_VERIFIED, MICROSCAN_VISIBLE_INDICATOR_VERIFIED);
++  Serial.printf("INFO camera_init=0x%x sensor_pid=0x%x format=%s psram=%d indicator_gpio=%d radio=unused\n",
++                unsigned(g_init_status), s ? unsigned(s->id.PID) : 0u,
++                g_format == PIXFORMAT_JPEG ? "JPEG-hw" : "RGB565+soft-JPEG", psramFound() ? 1 : 0,
++                CAPTURE_INDICATOR_GPIO);
++}
++
++static void lamp_test() {
++  // No frame is requested here. Lets a person confirm WHICH LED the indicator GPIO drives.
++  IndicatorScope indicator;
++  Serial.println("LAMPTEST indicator output ON for 3 s - look at the camera face");
++  delay(LAMPTEST_MS);
++  Serial.println(indicator.lit() ? "LAMPTEST done latch=HIGH" : "LAMPTEST FAILED latch not HIGH");
++}
++
+ static void capture_explicit() {
+-  if(!initialized) { Serial.println("ERROR camera not ready"); return; }
+-  // On verified boards, flash light communicates active capture and aids document illumination.
+-  digitalWrite(CAPTURE_INDICATOR_GPIO, HIGH);
+-  delay(90);
+-  camera_fb_t *fb = esp_camera_fb_get();
+-  if(!fb) {
+-    digitalWrite(CAPTURE_INDICATOR_GPIO, LOW);
+-    Serial.println("ERROR camera capture failed");
++  if (g_capture_locked) {
++    Serial.println("ERROR capture locked: bring-up build, hardware gates not verified");
++    return;
++  }
++  if (!g_initialized) {
++    Serial.println("ERROR camera not ready");
+     return;
+   }
+-  // Wire format: MSJ1, uint32 length, uint16 width, uint16 height, uint32 CRC32, raw JPEG.
+-  const uint32_t checksum = crc32_bytes(fb->buf, fb->len);
+-  Serial.write(reinterpret_cast<const uint8_t*>("MSJ1"),4);
+-  write_le32(uint32_t(fb->len));
+-  write_le16(uint16_t(fb->width));
+-  write_le16(uint16_t(fb->height));
+-  write_le32(checksum);
+-  Serial.write(fb->buf,fb->len);
+-  Serial.flush();
++  IndicatorScope indicator;  // ON from here until this function returns, on every path
++  delay(INDICATOR_PREROLL_MS);
++  // Drop one buffered frame so the transmitted exposure starts after the light came on.
++  camera_fb_t* stale = guarded_fb_get(indicator);
++  if (stale) esp_camera_fb_return(stale);
++  camera_fb_t* fb = guarded_fb_get(indicator);
++  if (!fb) {
++    Serial.println(indicator.lit() ? "ERROR camera capture failed" : "ERROR indicator latch not HIGH; capture refused");
++    return;
++  }
++  const uint8_t* jpeg = fb->buf;
++  size_t jpeg_len = fb->len;
++  uint8_t* owned = nullptr;
++  if (fb->format != PIXFORMAT_JPEG) {
++    JpegSink sink = {nullptr, 0, 0, false};
++    sink.cap = size_t(fb->width) * fb->height / 2;
++    if (sink.cap < 65536) sink.cap = 65536;
++    owned = static_cast<uint8_t*>(ps_malloc(sink.cap));
++    sink.buf = owned;
++    const bool ok = owned && frame2jpg_cb(fb, MICROSCAN_SOFT_JPEG_QUALITY, jpeg_sink_cb, &sink) && !sink.overflow && sink.len > 4;
++    if (!ok) {
++      Serial.println("ERROR software JPEG encode failed");
++      if (owned) free(owned);
++      esp_camera_fb_return(fb);
++      return;
++    }
++    jpeg = owned;
++    jpeg_len = sink.len;
++  }
++  if (!indicator.lit()) {
++    Serial.println("ERROR indicator latch dropped; frame discarded");
++  } else {
++    // Wire format (unchanged from V4): MSJ1, uint32 length, uint16 width, uint16 height, uint32 CRC32, JPEG.
++    const uint32_t checksum = crc32_bytes(jpeg, jpeg_len);
++    Serial.write(reinterpret_cast<const uint8_t*>("MSJ1"), 4);
++    write_le32(uint32_t(jpeg_len));
++    write_le16(uint16_t(fb->width));
++    write_le16(uint16_t(fb->height));
++    write_le32(checksum);
++    Serial.write(jpeg, jpeg_len);
++    Serial.flush();
++  }
++  if (owned) free(owned);
+   esp_camera_fb_return(fb);
+-  digitalWrite(CAPTURE_INDICATOR_GPIO, LOW);
+ }
++
+ void setup() {
+-  Serial.begin(115200);
+-  pinMode(CAPTURE_INDICATOR_GPIO,OUTPUT);
+-  digitalWrite(CAPTURE_INDICATOR_GPIO,LOW);
+-  camera_config_t cfg = {};
+-  cfg.ledc_channel=LEDC_CHANNEL_0;
+-  cfg.ledc_timer=LEDC_TIMER_0;
+-  cfg.pin_d0=CAM_Y2; cfg.pin_d1=CAM_Y3; cfg.pin_d2=CAM_Y4; cfg.pin_d3=CAM_Y5;
+-  cfg.pin_d4=CAM_Y6; cfg.pin_d5=CAM_Y7; cfg.pin_d6=CAM_Y8; cfg.pin_d7=CAM_Y9;
+-  cfg.pin_xclk=CAM_XCLK; cfg.pin_pclk=CAM_PCLK;
+-  cfg.pin_vsync=CAM_VSYNC; cfg.pin_href=CAM_HREF;
+-  cfg.pin_sccb_sda=CAM_SIOD; cfg.pin_sccb_scl=CAM_SIOC;
+-  cfg.pin_pwdn=CAM_PWDN; cfg.pin_reset=CAM_RESET;
+-  cfg.xclk_freq_hz=20000000;
+-  cfg.pixel_format=PIXFORMAT_JPEG;
+-  cfg.jpeg_quality=12;
+-  cfg.fb_count=1;
+-  cfg.grab_mode=CAMERA_GRAB_WHEN_EMPTY;
+-  cfg.fb_location=psramFound() ? CAMERA_FB_IN_PSRAM:CAMERA_FB_IN_DRAM;
+-  cfg.frame_size=psramFound() ? FRAMESIZE_UXGA:FRAMESIZE_VGA;
+-  const esp_err_t status=esp_camera_init(&cfg);
+-  initialized=(status==ESP_OK);
+-  if(initialized) Serial.println("MICROSCAN_VISIBLE_USB_READY; type CAPTURE and newline");
+-  else Serial.printf("ERROR camera init 0x%x\n",unsigned(status));
++  Serial.begin(MICROSCAN_BAUD);
++  pinMode(CAPTURE_INDICATOR_GPIO, OUTPUT);
++  digitalWrite(CAPTURE_INDICATOR_GPIO, LOW);
++  camera_bring_up();
++  if (g_capture_locked) Serial.println("MICROSCAN_BRINGUP capture LOCKED; commands: INFO, LAMPTEST");
++  if (g_initialized) Serial.println("MICROSCAN_VISIBLE_USB_READY; type CAPTURE and newline");
++  else Serial.printf("ERROR camera init 0x%x\n", unsigned(g_init_status));
+ }
++
+ void loop() {
+   static String line;
+-  while(Serial.available()>0) {
++  while (Serial.available() > 0) {
+     const char c = char(Serial.read());
+-    if(c=='\n' || c=='\r') {
++    if (c == '\n' || c == '\r') {
+       line.trim();
+-      if(line=="CAPTURE") capture_explicit();
+-      else if(line.length()) Serial.println("ERROR unknown operator command");
+-      line="";
+-    } else if(line.length()<32 && c>=32 && c<=126) line+=c;
++      if (line == "CAPTURE") capture_explicit();
++      else if (line == "INFO") print_info();
++      else if (line == "LAMPTEST") lamp_test();
++      else if (line.length()) Serial.println("ERROR unknown operator command");
++      line = "";
++    } else if (line.length() < 32 && c >= 32 && c <= 126) line += c;
+   }
+ }

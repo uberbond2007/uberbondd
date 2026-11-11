@@ -1,0 +1,128 @@
+{
+  "utc": "2026-11-11T17:55:30.619993+00:00",
+  "phase": "DIGITAL_ONLY",
+  "physical_hardware_tested": false,
+  "printed": false,
+  "flashed": false,
+  "camera_image_captured": false,
+  "esp32_firmware_compiled": true,
+  "esp32_firmware_compile_scope": "capture-LOCKED bring-up image only; capture-capable image is refused by the gates",
+  "firmware_build_note": "real ESP32 cross-compile executed",
+  "tools": {
+    "python": "3.13.18",
+    "platform": "Linux-6.18.44-fc-v378-x86_64-with-glibc2.39",
+    "cadquery": "2.8.0",
+    "trimesh": "5.2.0",
+    "pillow": "13.0.0",
+    "numpy": "2.5.4",
+    "matplotlib": "3.11.2",
+    "reportlab": "5.1.0",
+    "g++": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "platformio": "PlatformIO Core, version 6.2.0"
+  },
+  "steps": [
+    {
+      "name": "release_and_v4_integrity",
+      "command": "python -m unittest -v checks.test_release_integrity_v5",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\ntest_blockers_are_at_most_three (checks.test_release_integrity_v5.Release.test_blockers_are_at_most_three) ... ok\ntest_design_stays_overt (checks.test_release_integrity_v5.Release.test_design_stays_overt) ... ok\ntest_no_flashable_image_or_build_tree_is_shipped (checks.test_release_integrity_v5.Release.test_no_flashable_image_or_build_tree_is_shipped) ... ok\ntest_readiness_is_not_inflated (checks.test_release_integrity_v5.Release.test_readiness_is_not_inflated) ... ok\ntest_required_deliverables_exist (checks.test_release_integrity_v5.Release.test_required_deliverables_exist) ... ok\ntest_v4_archive_is_the_one_named_in_the_mission (checks.test_release_integrity_v5.Release.test_v4_archive_is_the_one_named_in_the_mission) ... ok\ntest_v4_extraction_is_byte_identical_and_complete (checks.test_release_integrity_v5.Release.test_v4_extraction_is_byte_identical_and_complete) ... ok\ntest_v4_internal_manifest_still_matches (checks.test_release_integrity_v5.Release.test_v4_internal_manifest_still_matches) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.032s\n\nOK\n"
+    },
+    {
+      "name": "v4_reproduction_run_verification",
+      "command": "python tools/run_verification.py",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "serial_transport_tests PASS\nrelease_checks PASS\ncad_geometry PASS\ncad_meshes PASS\ncpp_to_python_protocol PASS C++ CRC32 encoder -> Python strict JPEG decoder passed; width=640, height=360, bytes=19147\nPASS_STEPS 5 FAIL_STEPS 0\n\n"
+    },
+    {
+      "name": "cad_build_v5",
+      "command": "python cad/build_hardware_v5.py",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "EXPORTED Open_Camera_Carrier_V5, Adjustable_Edge_Retainer_V5, HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT + nominal assembly\nOpen_Camera_Carrier_V5 bounds mm (84.0, 58.0, 12.74) volume mm3 16573.15\nAdjustable_Edge_Retainer_V5 bounds mm (14.0, 6.0, 3.0) volume mm3 172.21\nHW818_Nominal_PCB_Gauge_DO_NOT_MOUNT bounds mm (48.5, 27.0, 1.6) volume mm3 2047.05\n\n/tmp/claude-0/-home-user-uberbondd/198c983d-c6aa-59a9-b111-da4d3f71827e/scratchpad/tools/venv/lib/python3.13/site-packages/cadquery/utils.py:82: FutureWarning: save will be removed in the next release.\n  warn(f\"{f.__name__} will be removed in the next release.\", FutureWarning)\n"
+    },
+    {
+      "name": "cad_validate_v5",
+      "command": "python checks/validate_cad_v5.py",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "b >= 2.4 mm | 2.5\nPASS | Cable-tie window y=-6.4 open\nPASS | Strap slot y=24.5 open for a 20 mm strap\nPASS | Strap slot y=24.5 edge web >= 2.4 mm | 2.5\nPASS | Cable-tie window y=6.4 open\nPASS | Skin-side tie channel lets the tie sit flush\nPASS | M3 clearance hole (-21.0,-17.5) through\nPASS | Pan-head pocket (-21.0,-17.5) admits dk6.0 x k2.4 head below skin face\nPASS | Wall between pocket (-21.0,-17.5) and strap slot >= 1.2 mm | 1.7\nPASS | M3 clearance hole (-21.0,17.5) through\nPASS | Pan-head pocket (-21.0,17.5) admits dk6.0 x k2.4 head below skin face\nPASS | Wall between pocket (-21.0,17.5) and strap slot >= 1.2 mm | 1.7\nPASS | M3 clearance hole (-6.5,-17.5) through\nPASS | Pan-head pocket (-6.5,-17.5) admits dk6.0 x k2.4 head below skin face\nPASS | Wall between pocket (-6.5,-17.5) and strap slot >= 1.2 mm | 1.7\nPASS | M3 clearance hole (-6.5,17.5) through\nPASS | Pan-head pocket (-6.5,17.5) admits dk6.0 x k2.4 head below skin face\nPASS | Wall between pocket (-6.5,17.5) and strap slot >= 1.2 mm | 1.7\nPASS | Solid floor under pin troughs >= 1.6 mm | 1.8000000000000003\nPASS | Plate is unbroken beneath pin row y=-11.43 | 126.99\nPASS | Plate is unbroken beneath pin row y=11.43 | 126.99\nPASS | Nominal pin tips stay >= 0.5 mm above trough floor | 0.7\nPASS | Header plastic bearing ledge each side >= 0.5 mm | 0.52\nPASS | Rail wall beside trough >= 1.2 mm (3 perimeters @0.4) | 1.5499999999999998\nPASS | Row-spacing float available each side (mm) | 0.43\nPASS | Carrier does not intersect NOMINAL pcb | 0.0\nPASS | Carrier does not intersect NOMINAL header_bodies | 0.0\nPASS | Carrier does not intersect NOMINAL header_pins | 0.0\nPASS | Carrier does not intersect NOMINAL solder_tails | 0.0\nPASS | Carrier does not intersect NOMINAL module | 0.0\nPASS | Carrier does not intersect NOMINAL usb_plug | 0.0\nPASS | Carrier does not intersect NOMINAL camera_stack | 0.0\nPASS | USB plug underside clears plate top by >= 1.0 mm | 2.59\nPASS | >= 6 mm between nominal plug end and cable saddle for the boot | 8.5\nPASS | Plug, boot and saddle stay inside the plate outline | 39.0\nPASS | Board outline inside plate with >= 1.5 mm margin\nPASS | Open air gap under module can >= 3 mm (convection, no skin contact) | 4.74\nPASS | Retainer 1 does not cut into carrier\nPASS | Retainer 1 clear of NOMINAL pcb at 1.0 mm overlap\nPASS | Retainer 1 clear of NOMINAL header_bodies at 1.0 mm overlap\nPASS | Retainer 1 clear of NOMINAL header_pins at 1.0 mm overlap\nPASS | Retainer 1 clear of NOMINAL solder_tails at 1.0 mm overlap\nPASS | Retainer 1 clear of NOMINAL module at 1.0 mm overlap\nPASS | Retainer 1 clear of NOMINAL usb_plug at 1.0 mm overlap\nPASS | Retainer 1 clear of NOMINAL camera_stack at 1.0 mm overlap\nPASS | Retainer 2 does not cut into carrier\nPASS | Retainer 2 clear of NOMINAL pcb at 1.0 mm overlap\nPASS | Retainer 2 clear of NOMINAL header_bodies at 1.0 mm overlap\nPASS | Retainer 2 clear of NOMINAL header_pins at 1.0 mm overlap\nPASS | Retainer 2 clear of NOMINAL solder_tails at 1.0 mm overlap\nPASS | Retainer 2 clear of NOMINAL module at 1.0 mm overlap\nPASS | Retainer 2 clear of NOMINAL usb_plug at 1.0 mm overlap\nPASS | Retainer 2 clear of NOMINAL camera_stack at 1.0 mm overlap\nPASS | Retainer 3 does not cut into carrier\nPASS | Retainer 3 clear of NOMINAL pcb at 1.0 mm overlap\nPASS | Retainer 3 clear of NOMINAL header_bodies at 1.0 mm overlap\nPASS | Retainer 3 clear of NOMINAL header_pins at 1.0 mm overlap\nPASS | Retainer 3 clear of NOMINAL solder_tails at 1.0 mm overlap\nPASS | Retainer 3 clear of NOMINAL module at 1.0 mm overlap\nPASS | Retainer 3 clear of NOMINAL usb_plug at 1.0 mm overlap\nPASS | Retainer 3 clear of NOMINAL camera_stack at 1.0 mm overlap\nPASS | Retainer 4 does not cut into carrier\nPASS | Retainer 4 clear of NOMINAL pcb at 1.0 mm overlap\nPASS | Retainer 4 clear of NOMINAL header_bodies at 1.0 mm overlap\nPASS | Retainer 4 clear of NOMINAL header_pins at 1.0 mm overlap\nPASS | Retainer 4 clear of NOMINAL solder_tails at 1.0 mm overlap\nPASS | Retainer 4 clear of NOMINAL module at 1.0 mm overlap\nPASS | Retainer 4 clear of NOMINAL usb_plug at 1.0 mm overlap\nPASS | Retainer 4 clear of NOMINAL camera_stack at 1.0 mm overlap\nPASS | Nominal retainer overlap on PCB edge is 1.0 mm | 1.0\nPASS | Slot travel lets a retainer fully release the board | -0.95\nPASS | Slot travel reaches >= 3 mm overlap for a narrower real board | 3.95\nPASS | At 1.0 mm overlap the retainer tip is >= 0.5 mm from pin tails | 0.75\nPASS | Documented maximum overlap before fouling solder fillets (mm) | 1.15\nPASS | Grip length head-seat to retainer top (mm) | 13.14\nPASS | M3x16 gives full nut engagement | {'thread_past_nut_mm': 0.46, 'full_nut_engagement': True}\nPASS | M3x20 gives full nut engagement | {'thread_past_nut_mm': 4.46, 'full_nut_engagement': True}\nPASS | M3x15 is correctly REJECTED (too short) | {'thread_past_nut_mm': -0.54, 'full_nut_engagement': False}\nPASS | Fastener points away from skin (head recessed, excess thread upward)\nPASS | Material left under pillar at pocket >= 0.5 mm | 0.6\nPASS | Engraved CAMERA label present at y=-18.5 | 28.5\nPASS | Engraved CAMERA label present at y=18.5 | 28.5\nPASS | Nothing in the carrier stands above the PCB top plane (lens and LED uncovered) | 12.74\nTOTAL 100 / 100\n{\n \"carrier_volume_mm3\": 16573.2,\n \"carrier_mass_g_solid_PETG_upper_bound\": 21.0,\n \"four_retainers_mass_g_solid_PETG\": 0.87,\n \"gauge_mass_g_solid_PETG\": 2.6,\n \"pcb_underside_z_mm\": 11.14,\n \"pcb_top_z_mm\": 12.74,\n \"estimated_total_height_mm_UNVERIFIED\": 19.24,\n \"usb_end_x_mm\": 8.5,\n \"fasteners\": {\n  \"M3x12\": {\n   \"thread_past_nut_mm\": -3.54,\n   \"full_nut_engagement\": false\n  },\n  \"M3x15\": {\n   \"thread_past_nut_mm\": -0.54,\n   \"full_nut_engagement\": false\n  },\n  \"M3x16\": {\n   \"thread_past_nut_mm\": 0.46,\n   \"full_nut_engagement\": true\n  },\n  \"M3x20\": {\n   \"thread_past_nut_mm\": 4.46,\n   \"full_nut_engagement\": true\n  },\n  \"M3x25\": {\n   \"thread_past_nut_mm\": 9.46,\n   \"full_nut_engagement\": true\n  }\n },\n \"retainer_overlap_range_mm\": [\n  -0.95,\n  3.95\n ]\n}\n\n"
+    },
+    {
+      "name": "audit_v2_against_hw818",
+      "command": "python checks/audit_v2_against_hw818.py",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "V2-F1 | Factory-soldered header pins cannot seat: V2 lifts the PCB only 3.5 mm | {'v2_pcb_underside_z': 6.7, 'pin_tip_z': -1.94, 'plate_bottom_z': 0.0, 'pins_would_pass_through_plate_and_protrude_toward_skin_mm': 1.94}\nV2-F2 | Board length exceeds the gap between V2 pillars | {'gap_between_pillar_faces_mm': 46.0, 'hw818_length_mm_UNVERIFIED': 48.5, 'v2_assumed_length_mm': 40.0, 'interference_mm': 2.5}\nV2-F3 | USB plug has nowhere to go: board long axis ends at an M3 pillar pair and a strap slot | {'v2_pillar_x': 26.0, 'v2_strap_slot_x': 35, 'plate_half_length': 42.0, 'needed_beyond_board_end_for_plug_mm': 19.0, 'available_beyond_40mm_board_end_mm': 22.0}\nV2-F4 | V2 support pads sit under the header rows | {'pad_centres_y': [-6.0, 14.0], 'pad_half_width': 2.0, 'header_row_y': [-7.43, 15.43], 'overlap': True}\nV2-F5 | Skin-side head pocket is shallower than an M3 pan head | {'v2_pocket_depth_mm': 1.8, 'iso7045_m3_pan_head_height_mm': 2.4, 'head_proud_of_skin_face_mm': 0.6}\nV2-F6 | V2 M3x16 recommendation happened to be long enough (kept for the record) | {'grip_mm': 9.3, 'thread_past_2.4_nut_mm': 4.3}\nV2-F7 | validate_cad.py comment says the CAD module \"exports on import\"; it does not (export is under __main__) | {'effect': 'V4 CAD checks validated the in-memory solid plus the previously exported STL; harmless but inaccurate'}\nV2-F8 | V4 host tool sends CAPTURE immediately after opening the port | {'risk': 'if the HW-818 has the usual DTR/RTS auto-program circuit, opening the port resets the ESP32 and the request is lost', 'v5_change': '--wait-ready option; evidence class for the reset circuit: UNKNOWN'}\nV2 releasable for the photographed board: False\n\n"
+    },
+    {
+      "name": "drawings_and_previews",
+      "command": "python drawings/generate_drawings_v5.py",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "WROTE MicroScan_V5_Drawings_1to1.pdf and 3 CAD-derived previews\n\n"
+    },
+    {
+      "name": "host_transport_tests",
+      "command": "python -m unittest discover -s host/tests -v",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\ntest_crc_error_not_written (test_live_serial.SerialTests.test_crc_error_not_written) ... ok\ntest_false_magic_before_frame (test_live_serial.SerialTests.test_false_magic_before_frame) ... ok\ntest_false_magic_single_chunk (test_live_serial.SerialTests.test_false_magic_single_chunk) ... ok\ntest_fragmented_one_byte_at_time (test_live_serial.SerialTests.test_fragmented_one_byte_at_time) ... ok\ntest_malformed_header (test_live_serial.SerialTests.test_malformed_header) ... ok\ntest_one_shot_real_posix_pty (test_live_serial.SerialTests.test_one_shot_real_posix_pty) ... ok\ntest_timeout (test_live_serial.SerialTests.test_timeout) ... ok\ntest_absent_magic (test_usb_packet.PacketTests.test_absent_magic) ... ok\ntest_bad_crc (test_usb_packet.PacketTests.test_bad_crc) ... ok\ntest_bad_dimensions (test_usb_packet.PacketTests.test_bad_dimensions) ... ok\ntest_header_mismatch (test_usb_packet.PacketTests.test_header_mismatch) ... ok\ntest_invalid_count (test_usb_packet.PacketTests.test_invalid_count) ... ok\ntest_jpeg_marker_does_not_suffice (test_usb_packet.PacketTests.test_jpeg_marker_does_not_suffice) ... ok\ntest_serial_prefix (test_usb_packet.PacketTests.test_serial_prefix) ... ok\ntest_truncated_body (test_usb_packet.PacketTests.test_truncated_body) ... ok\ntest_truncated_header (test_usb_packet.PacketTests.test_truncated_header) ... ok\ntest_valid (test_usb_packet.PacketTests.test_valid) ... ok\ntest_all_declared_bauds_configure_a_port (test_v5_adversarial.Adversarial.test_all_declared_bauds_configure_a_port) ... ok\ntest_cli_refuses_without_indicator_confirmation (test_v5_adversarial.Adversarial.test_cli_refuses_without_indicator_confirmation) ... ok\ntest_crc_collision_guard_needs_real_jpeg (test_v5_adversarial.Adversarial.test_crc_collision_guard_needs_real_jpeg) ... ok\ntest_error_text_inside_jpeg_payload_is_not_misread (test_v5_adversarial.Adversarial.test_error_text_inside_jpeg_payload_is_not_misread) ... ok\ntest_every_single_bit_flip_in_header_is_rejected_or_harmless (test_v5_adversarial.Adversarial.test_every_single_bit_flip_in_header_is_rejected_or_harmless) ... ok\ntest_exactly_one_capture_request_is_sent (test_v5_adversarial.Adversarial.test_exactly_one_capture_request_is_sent) ... ok\ntest_firmware_error_line_fails_fast (test_v5_adversarial.Adversarial.test_firmware_error_line_fails_fast) ... ok\ntest_host_code_has_no_network_or_loop_capture (test_v5_adversarial.Adversarial.test_host_code_has_no_network_or_loop_capture) ... ok\ntest_long_garbage_prefix_with_magic_split_across_reads (test_v5_adversarial.Adversarial.test_long_garbage_prefix_with_magic_split_across_reads) ... ok\ntest_plausible_false_header_fails_closed_without_second_request (test_v5_adversarial.Adversarial.test_plausible_false_header_fails_closed_without_second_request) ... ok\ntest_random_fragmentation_patterns (test_v5_adversarial.Adversarial.test_random_fragmentation_patterns) ... ok\ntest_random_payload_corruption_always_rejected (test_v5_adversarial.Adversarial.test_random_payload_corruption_always_rejected) ... ok\ntest_three_false_headers_then_real (test_v5_adversarial.Adversarial.test_three_false_headers_then_real) ... ok\ntest_transfer_time_arithmetic (test_v5_adversarial.Adversarial.test_transfer_time_arithmetic) ... ok\ntest_truncation_at_every_length_rejected (test_v5_adversarial.Adversarial.test_truncation_at_every_length_rejected) ... ok\ntest_unsupported_baud_refused (test_v5_adversarial.Adversarial.test_unsupported_baud_refused) ... ok\ntest_wait_ready_reports_boot_error (test_v5_adversarial.Adversarial.test_wait_ready_reports_boot_error) ... ok\ntest_wait_ready_sends_request_only_after_banner (test_v5_adversarial.Adversarial.test_wait_ready_sends_request_only_after_banner) ... ok\ntest_wait_ready_timeout_then_single_request (test_v5_adversarial.Adversarial.test_wait_ready_timeout_then_single_request) ... ok\n\n----------------------------------------------------------------------\nRan 36 tests in 3.044s\n\nOK\n"
+    },
+    {
+      "name": "cpp_emitter_compile",
+      "command": "g++ -std=c++17 -O2 -Wall -Wextra -Werror bench/packet_emitter.cpp -o /tmp/tmpm0l0tit1/packet_emitter",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\n"
+    },
+    {
+      "name": "cpp_emitter_to_python_parser",
+      "command": "python -c import subprocess,sys;sys.path.insert(0,'host');from microscan_usb_packet import decode_packet;p=subprocess.run([r'/tmp/tmpm0l0tit1/packet_emitter',r'./source_v4/extracted_unmodified/reports/SYNTHETIC_FRAME_ONLY.jpg','640','360'],capture_output=True);assert p.returncode==0;m,j=decode_packet(p.stdout);assert j==open(r'./source_v4/extracted_unmodified/reports/SYNTHETIC_FRAME_ONLY.jpg','rb').read();print(m)",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "{'width': 640, 'height': 360, 'bytes': 19147, 'crc32': '0cc14f76'}\n\n"
+    },
+    {
+      "name": "firmware_source_checks",
+      "command": "python -m unittest -v checks.test_firmware_source",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\ntest_baud_is_restricted (checks.test_firmware_source.Source.test_baud_is_restricted) ... ok\ntest_both_v4_gates_are_still_zero_and_hard_coded (checks.test_firmware_source.Source.test_both_v4_gates_are_still_zero_and_hard_coded) ... ok\ntest_build_config_cannot_define_the_gates (checks.test_firmware_source.Source.test_build_config_cannot_define_the_gates) ... ok\ntest_capture_holds_scope_before_any_camera_or_uart_payload_use (checks.test_firmware_source.Source.test_capture_holds_scope_before_any_camera_or_uart_payload_use) ... ok\ntest_gate_errors_present (checks.test_firmware_source.Source.test_gate_errors_present) ... ok\ntest_indicator_is_only_switched_off_by_scope_exit_or_setup (checks.test_firmware_source.Source.test_indicator_is_only_switched_off_by_scope_exit_or_setup) ... ok\ntest_loop_has_no_autonomous_trigger (checks.test_firmware_source.Source.test_loop_has_no_autonomous_trigger) ... ok\ntest_no_preprocessor_switch_around_the_interlock (checks.test_firmware_source.Source.test_no_preprocessor_switch_around_the_interlock) ... ok\ntest_no_radio_storage_or_network_code (checks.test_firmware_source.Source.test_no_radio_storage_or_network_code) ... ok\ntest_pin_map_equals_espressif_ai_thinker_and_v4 (checks.test_firmware_source.Source.test_pin_map_equals_espressif_ai_thinker_and_v4) ... ok\ntest_single_guarded_frame_grab (checks.test_firmware_source.Source.test_single_guarded_frame_grab) ... ok\ntest_v4_firmware_is_preserved_unmodified (checks.test_firmware_source.Source.test_v4_firmware_is_preserved_unmodified) ... ok\ntest_wire_format_and_crc_unchanged_from_v4 (checks.test_firmware_source.Source.test_wire_format_and_crc_unchanged_from_v4) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.003s\n\nOK\n"
+    },
+    {
+      "name": "firmware_interlock_on_mock",
+      "command": "python -m unittest -v checks.test_firmware_interlock",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\ntest_bringup_build_refuses_capture (checks.test_firmware_interlock.Interlock.test_bringup_build_refuses_capture) ... ok\ntest_camera_failure_releases_indicator (checks.test_firmware_interlock.Interlock.test_camera_failure_releases_indicator) ... ok\ntest_camera_not_found_never_captures (checks.test_firmware_interlock.Interlock.test_camera_not_found_never_captures) ... ok\ntest_gc2145_class_falls_back_to_rgb565_and_soft_jpeg (checks.test_firmware_interlock.Interlock.test_gc2145_class_falls_back_to_rgb565_and_soft_jpeg) ... ok\ntest_gc2145_without_psram_refuses (checks.test_firmware_interlock.Interlock.test_gc2145_without_psram_refuses) ... ok\ntest_idle_loop_never_captures (checks.test_firmware_interlock.Interlock.test_idle_loop_never_captures) ... ok\ntest_indicator_dropping_midway_discards_the_frame (checks.test_firmware_interlock.Interlock.test_indicator_dropping_midway_discards_the_frame) ... ok\ntest_indicator_latch_stuck_low_means_no_frame_is_ever_read (checks.test_firmware_interlock.Interlock.test_indicator_latch_stuck_low_means_no_frame_is_ever_read) ... ok\ntest_info_reports_gate_state_and_no_radio (checks.test_firmware_interlock.Interlock.test_info_reports_gate_state_and_no_radio) ... ok\ntest_lamptest_lights_without_reading_the_camera (checks.test_firmware_interlock.Interlock.test_lamptest_lights_without_reading_the_camera) ... ok\ntest_mutant_without_latch_check_is_caught (checks.test_firmware_interlock.Interlock.test_mutant_without_latch_check_is_caught)\nMutation test: delete the latch check and confirm THIS suite's assertion would fail. ... ok\ntest_only_the_exact_command_triggers (checks.test_firmware_interlock.Interlock.test_only_the_exact_command_triggers) ... ok\ntest_ov2640_class_capture_ordering_and_packet (checks.test_firmware_interlock.Interlock.test_ov2640_class_capture_ordering_and_packet) ... ok\ntest_setup_never_touches_the_camera_frame_path (checks.test_firmware_interlock.Interlock.test_setup_never_touches_the_camera_frame_path) ... ok\ntest_soft_encode_failure_sends_no_packet_and_releases_indicator (checks.test_firmware_interlock.Interlock.test_soft_encode_failure_sends_no_packet_and_releases_indicator) ... ok\ntest_two_requests_give_two_separately_indicated_frames (checks.test_firmware_interlock.Interlock.test_two_requests_give_two_separately_indicated_frames) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 1.727s\n\nOK\n"
+    },
+    {
+      "name": "firmware_real_esp32_build",
+      "command": "python -m unittest -v checks.test_firmware_build",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\ntest_1_capture_capable_build_is_blocked_by_both_gates (checks.test_firmware_build.Build.test_1_capture_capable_build_is_blocked_by_both_gates) ... ok\ntest_2_bringup_capture_locked_build_compiles_without_warnings_or_radio (checks.test_firmware_build.Build.test_2_bringup_capture_locked_build_compiles_without_warnings_or_radio) ... ok\ntest_3_gates_cannot_be_forced_from_the_command_line (checks.test_firmware_build.Build.test_3_gates_cannot_be_forced_from_the_command_line) ... ok\ntest_4_host_mock_macro_is_rejected_by_esp32_build (checks.test_firmware_build.Build.test_4_host_mock_macro_is_rejected_by_esp32_build) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 11.890s\n\nOK\n"
+    },
+    {
+      "name": "optics_and_transfer_budget",
+      "command": "python checks/optics_and_transfer_budget.py",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "{\n \"UXGA 1600x1200 (JPEG sensors only; 3.84 MB as RGB565 - does not fit 4 MB PSRAM)\": 158.1,\n \"XGA 1024x768 (RGB565 1.57 MB; driver support on this sensor UNVERIFIED)\": 101.2,\n \"SVGA 800x600 (RGB565 0.96 MB; V5 default for JPEG-less sensors)\": 79.0,\n \"QVGA 320x240 (the only mode the seller guide for RHYX M21-45 says works)\": 31.6\n}\n{\n \"60 kB (SVGA soft-JPEG, text page, estimate)\": {\n  \"115200\": 5.21,\n  \"230400\": 2.6,\n  \"460800\": 1.3,\n  \"921600\": 0.65\n },\n \"120 kB\": {\n  \"115200\": 10.42,\n  \"230400\": 5.21,\n  \"460800\": 2.6,\n  \"921600\": 1.3\n },\n \"250 kB (V4 example)\": {\n  \"115200\": 21.7,\n  \"230400\": 10.85,\n  \"460800\": 5.43,\n  \"921600\": 2.71\n },\n \"400 kB (UXGA hardware JPEG, detailed page)\": {\n  \"115200\": 34.72,\n  \"230400\": 17.36,\n  \"460800\": 8.68,\n  \"921600\": 4.34\n },\n \"1 MB (V4 example)\": {\n  \"115200\": 86.81,\n  \"230400\": 43.4,\n  \"460800\": 21.7,\n  \"921600\": 10.85\n }\n}\n\n"
+    },
+    {
+      "name": "bom_arithmetic",
+      "command": "python -m unittest -v checks.test_bom",
+      "exit_code": 0,
+      "ok": true,
+      "log_tail": "\ntest_budget_statement_is_conditional (checks.test_bom.Bom.test_budget_statement_is_conditional) ... ok\ntest_every_line_total_equals_qty_times_unit (checks.test_bom.Bom.test_every_line_total_equals_qty_times_unit) ... ok\ntest_every_priced_line_has_a_source_url_and_date (checks.test_bom.Bom.test_every_priced_line_has_a_source_url_and_date) ... ok\ntest_known_subtotal (checks.test_bom.Bom.test_known_subtotal) ... ok\ntest_no_purchase_claims (checks.test_bom.Bom.test_no_purchase_claims) ... ok\ntest_unknowns_are_not_given_numbers (checks.test_bom.Bom.test_unknowns_are_not_given_numbers) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nOK\n"
+    }
+  ],
+  "passed": 14,
+  "failed": 0,
+  "skipped": 0,
+  "failed_steps": [],
+  "skipped_steps": []
+}

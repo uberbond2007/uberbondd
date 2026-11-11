@@ -1,0 +1,51 @@
+{
+  "pio": "PlatformIO Core, version 6.2.0",
+  "gated": {
+    "command": "pio run -e hw818_capture_GATED",
+    "exit_code": 1,
+    "errors": [
+      "src/main.cpp:42:6: error: #error \"HW-818 camera pin map unverified; refuse capture-capable build.\"",
+      "src/main.cpp:45:6: error: #error \"Visible capture indicator unverified; refuse capture-capable build.\""
+    ]
+  },
+  "bringup": {
+    "command": "pio run -e hw818_bringup_capture_locked",
+    "exit_code": 0,
+    "platform": "espressif32@6.9.0",
+    "framework_arduinoespressif32": "3.20017.241212+sha.dcc1105b",
+    "compiler": "xtensa-esp32-elf-gcc (crosstool-NG esp-2021r2-patch5) 8.4.0",
+    "size": [
+      "RAM:   [=         ]  10.4% (used 34120 bytes from 327680 bytes)",
+      "Flash: [=         ]  11.6% (used 364241 bytes from 3145728 bytes)"
+    ],
+    "firmware_bin_bytes": 364608,
+    "firmware_bin_sha256_THIS_BUILD_ONLY": "3a5ac897b70b99bdf0d46cbe60835e32be7a9f4476d474cffb06b8f70397bd08",
+    "radio_symbols_checked_absent": [
+      "esp_wifi_init",
+      "esp_wifi_start",
+      "esp_wifi_connect",
+      "esp_bt_controller_enable",
+      "esp_bluedroid_enable",
+      "nimble_port_init",
+      "esp_netif_init",
+      "lwip_socket",
+      "httpd_start",
+      "sdmmc_host_init",
+      "esp_now_init",
+      "esp_https_ota",
+      "esp_ota_begin"
+    ],
+    "binary_shipped_in_release": false,
+    "flashed": false,
+    "run_on_hardware": false,
+    "note": "Image is capture-LOCKED at run time. It proves the source compiles and links for ESP32; nothing more."
+  },
+  "command_line_override_attack": {
+    "exit_code": 1,
+    "blocked": true
+  },
+  "host_mock_macro_attack": {
+    "exit_code": 1,
+    "blocked": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "release": "V3 digital preflight, not a physical hardware prototype",
+  "host_protocol_tests": 10,
+  "release_safety_tests": 4,
+  "cad_checks": 28,
+  "export_checks": 26,
+  "all_executed_checks_passed": true,
+  "firmware_compiled": false,
+  "firmware_flashed": false,
+  "physical_hardware_built": false,
+  "camera_capture_tested": false,
+  "oneplus_connection_tested": false,
+  "new_spend_EGP": 0,
+  "note": "Tests are of software and pre-existing CAD only. Hardware tests remain required."
+}

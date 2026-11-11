@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="460" viewBox="0 0 1080 460">
+ <rect width="1080" height="460" fill="#f8fbfc"/>
+ <style>.hd{font:bold 27px Arial;fill:#113449}.box{fill:#fff;stroke:#1b7481;stroke-width:2.4;rx:12}.title{font:bold 18px Arial;fill:#113449}.sm{font:14px Arial;fill:#536575}.link{stroke:#2b7e83;stroke-width:3;marker-end:url(#arrow)}.risk{fill:#fff2d9;stroke:#cd8a24;stroke-width:1.5}</style>
+ <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2b7e83"/></marker></defs>
+ <text x="40" y="51" class="hd">MicroScan V2 | VISIBLE hardware interface</text>
+ <rect x="34" y="106" width="236" height="122" class="box"/><text x="50" y="143" class="title">CERTIFIED 5V USB</text><text x="50" y="169" class="sm">USB power / computer</text><text x="50" y="194" class="sm">No bare cells / loose wires</text>
+ <rect x="320" y="106" width="298" height="122" class="box"/><text x="335" y="143" class="title">RHYX-M21-45 ESP32-CAM</text><text x="335" y="169" class="sm">Board with Micro-USB / CH340</text><text x="335" y="194" class="sm">OV2640 via factory FPC</text>
+ <rect x="670" y="106" width="370" height="122" class="box"/><text x="686" y="143" class="title">CLEAR, VISIBLE CAMERA</text><text x="686" y="169" class="sm">On openly labelled wrist carrier</text><text x="686" y="194" class="sm">Focus performance NOT verified</text>
+ <path d="M270 167 H315" class="link"/><path d="M618 167 H665" class="link"/>
+ <text x="278" y="100" class="sm">Data/power USB cable</text><text x="621" y="100" class="sm">Factory FPC</text>
+ <rect x="350" y="292" width="392" height="112" class="box"/><text x="365" y="331" class="title">ONEPLUS 15 (local Wi-Fi)</text><text x="365" y="356" class="sm">Only after firmware + connection proven</text><text x="365" y="380" class="sm">Authorized documents / user-visible capture</text>
+ <path d="M468 229 V288" class="link"/><text x="487" y="260" class="sm">2.4 GHz Wi-Fi</text>
+ <rect x="765" y="284" width="290" height="120" class="risk" rx="10"/><text x="781" y="321" class="title">OPEN BLOCKERS</text><text x="781" y="346" class="sm">PCB fit | firmware | focus</text><text x="781" y="372" class="sm">status light | real hardware tests</text>
+</svg>

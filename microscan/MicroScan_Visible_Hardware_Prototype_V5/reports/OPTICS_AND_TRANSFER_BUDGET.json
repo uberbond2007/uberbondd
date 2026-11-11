@@ -1,0 +1,219 @@
+{
+  "status": "CALCULATED - NOT MEASURED",
+  "assumptions": {
+    "cap_height_10pt_mm": 2.47,
+    "target_cap_px": 25,
+    "needed_px_per_mm": 10.12,
+    "needed_dpi": 257
+  },
+  "pixel_density": {
+    "UXGA 1600x1200 (JPEG sensors only; 3.84 MB as RGB565 - does not fit 4 MB PSRAM)": {
+      "max_field_width_mm_for_10pt_text": 158.1,
+      "A4 long side 297 mm": {
+        "px_per_mm": 5.39,
+        "dpi": 137,
+        "cap_height_px_10pt": 13.3,
+        "meets_25px_cap_target": false
+      },
+      "A4 short side 210 mm": {
+        "px_per_mm": 7.62,
+        "dpi": 194,
+        "cap_height_px_10pt": 18.8,
+        "meets_25px_cap_target": false
+      },
+      "A5 short side 148 mm": {
+        "px_per_mm": 10.81,
+        "dpi": 275,
+        "cap_height_px_10pt": 26.7,
+        "meets_25px_cap_target": true
+      },
+      "A6 short side 105 mm": {
+        "px_per_mm": 15.24,
+        "dpi": 387,
+        "cap_height_px_10pt": 37.6,
+        "meets_25px_cap_target": true
+      },
+      "text column 80 mm": {
+        "px_per_mm": 20.0,
+        "dpi": 508,
+        "cap_height_px_10pt": 49.4,
+        "meets_25px_cap_target": true
+      }
+    },
+    "XGA 1024x768 (RGB565 1.57 MB; driver support on this sensor UNVERIFIED)": {
+      "max_field_width_mm_for_10pt_text": 101.2,
+      "A4 long side 297 mm": {
+        "px_per_mm": 3.45,
+        "dpi": 88,
+        "cap_height_px_10pt": 8.5,
+        "meets_25px_cap_target": false
+      },
+      "A4 short side 210 mm": {
+        "px_per_mm": 4.88,
+        "dpi": 124,
+        "cap_height_px_10pt": 12.0,
+        "meets_25px_cap_target": false
+      },
+      "A5 short side 148 mm": {
+        "px_per_mm": 6.92,
+        "dpi": 176,
+        "cap_height_px_10pt": 17.1,
+        "meets_25px_cap_target": false
+      },
+      "A6 short side 105 mm": {
+        "px_per_mm": 9.75,
+        "dpi": 248,
+        "cap_height_px_10pt": 24.1,
+        "meets_25px_cap_target": false
+      },
+      "text column 80 mm": {
+        "px_per_mm": 12.8,
+        "dpi": 325,
+        "cap_height_px_10pt": 31.6,
+        "meets_25px_cap_target": true
+      }
+    },
+    "SVGA 800x600 (RGB565 0.96 MB; V5 default for JPEG-less sensors)": {
+      "max_field_width_mm_for_10pt_text": 79.0,
+      "A4 long side 297 mm": {
+        "px_per_mm": 2.69,
+        "dpi": 68,
+        "cap_height_px_10pt": 6.7,
+        "meets_25px_cap_target": false
+      },
+      "A4 short side 210 mm": {
+        "px_per_mm": 3.81,
+        "dpi": 97,
+        "cap_height_px_10pt": 9.4,
+        "meets_25px_cap_target": false
+      },
+      "A5 short side 148 mm": {
+        "px_per_mm": 5.41,
+        "dpi": 137,
+        "cap_height_px_10pt": 13.3,
+        "meets_25px_cap_target": false
+      },
+      "A6 short side 105 mm": {
+        "px_per_mm": 7.62,
+        "dpi": 194,
+        "cap_height_px_10pt": 18.8,
+        "meets_25px_cap_target": false
+      },
+      "text column 80 mm": {
+        "px_per_mm": 10.0,
+        "dpi": 254,
+        "cap_height_px_10pt": 24.7,
+        "meets_25px_cap_target": false
+      }
+    },
+    "QVGA 320x240 (the only mode the seller guide for RHYX M21-45 says works)": {
+      "max_field_width_mm_for_10pt_text": 31.6,
+      "A4 long side 297 mm": {
+        "px_per_mm": 1.08,
+        "dpi": 27,
+        "cap_height_px_10pt": 2.7,
+        "meets_25px_cap_target": false
+      },
+      "A4 short side 210 mm": {
+        "px_per_mm": 1.52,
+        "dpi": 39,
+        "cap_height_px_10pt": 3.8,
+        "meets_25px_cap_target": false
+      },
+      "A5 short side 148 mm": {
+        "px_per_mm": 2.16,
+        "dpi": 55,
+        "cap_height_px_10pt": 5.3,
+        "meets_25px_cap_target": false
+      },
+      "A6 short side 105 mm": {
+        "px_per_mm": 3.05,
+        "dpi": 77,
+        "cap_height_px_10pt": 7.5,
+        "meets_25px_cap_target": false
+      },
+      "text column 80 mm": {
+        "px_per_mm": 4.0,
+        "dpi": 102,
+        "cap_height_px_10pt": 9.9,
+        "meets_25px_cap_target": false
+      }
+    }
+  },
+  "field_width_mm_vs_distance": {
+    "HFOV 45 deg (ASSUMPTION)": {
+      "100 mm": 82.8,
+      "150 mm": 124.3,
+      "200 mm": 165.7,
+      "300 mm": 248.5,
+      "400 mm": 331.4
+    },
+    "HFOV 55 deg (ASSUMPTION)": {
+      "100 mm": 104.1,
+      "150 mm": 156.2,
+      "200 mm": 208.2,
+      "300 mm": 312.3,
+      "400 mm": 416.5
+    },
+    "HFOV 65 deg (ASSUMPTION)": {
+      "100 mm": 127.4,
+      "150 mm": 191.1,
+      "200 mm": 254.8,
+      "300 mm": 382.2,
+      "400 mm": 509.7
+    },
+    "HFOV 75 deg (ASSUMPTION)": {
+      "100 mm": 153.5,
+      "150 mm": 230.2,
+      "200 mm": 306.9,
+      "300 mm": 460.4,
+      "400 mm": 613.9
+    }
+  },
+  "uart_seconds_lower_bound": {
+    "60 kB (SVGA soft-JPEG, text page, estimate)": {
+      "115200": 5.21,
+      "230400": 2.6,
+      "460800": 1.3,
+      "921600": 0.65
+    },
+    "120 kB": {
+      "115200": 10.42,
+      "230400": 5.21,
+      "460800": 2.6,
+      "921600": 1.3
+    },
+    "250 kB (V4 example)": {
+      "115200": 21.7,
+      "230400": 10.85,
+      "460800": 5.43,
+      "921600": 2.71
+    },
+    "400 kB (UXGA hardware JPEG, detailed page)": {
+      "115200": 34.72,
+      "230400": 17.36,
+      "460800": 8.68,
+      "921600": 4.34
+    },
+    "1 MB (V4 example)": {
+      "115200": 86.81,
+      "230400": 43.4,
+      "460800": 21.7,
+      "921600": 10.85
+    }
+  },
+  "protocol_overhead": {
+    "header_bytes": 16,
+    "line_bits_per_byte_8N1": 10,
+    "header_share_of_250kB_frame_percent": 0.0064,
+    "fixed_firmware_delay_s": 0.3,
+    "note": "plus two sensor frame times and, for JPEG-less sensors, software encoding (unmeasured)"
+  },
+  "v4_stated_21.7s_for_250kB_at_115200_reproduced": true,
+  "verdict": [
+    "Whole-A4 capture of 10 pt text is below the 25 px cap-height target in every mode (UXGA gives ~13 px).",
+    "With the RHYX/GC2145-class sensor limited to SVGA, the usable field for 10 pt text is about 79 mm wide: a paragraph, not a page.",
+    "Focus distance, lens FOV, real sharpness and OCR accuracy are UNKNOWN until a physical frame exists.",
+    "115200 baud is tolerable for <=120 kB frames (<=10.4 s); 921600 brings a 400 kB frame to 4.3 s but must be bench-verified."
+  ]
+}

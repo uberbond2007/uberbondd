@@ -1,0 +1,176 @@
+--- source_v4/extracted_unmodified/host/serial_capture.py	2026-11-10 00:00:00.000000000 +0000
++++ host/serial_capture.py	2026-11-11 17:42:30.876437073 +0000
+@@ -1,34 +1,50 @@
+ """Operator-initiated ONE-SHOT capture over an existing, visibly labelled USB-serial bench camera.
+ 
+-Linux/macOS POSIX serial only. No Wi-Fi, discovery, background monitoring, or retries
+-that trigger additional captures. A correct physical indicator and board configuration
+-are prerequisites, not checked by this software.
++V5 revision of the V4 tool (V4 original preserved in source_v4/). Changes, all host-side and reversible:
++  * higher CH340/ESP32 UART rates selectable (230400/460800/921600); 115200 stays the default
++  * optional --wait-ready: wait for the firmware READY banner before the single request, because
++    opening a CH340 port can reset an ESP32 board through its DTR/RTS auto-program circuit
++  * a firmware "ERROR ..." line now fails fast instead of waiting out the whole timeout
++  * HUPCL cleared so closing the port does not toggle the modem lines again
++Still: Linux/macOS POSIX serial only, no Wi-Fi, no discovery, no background monitoring, exactly one
++CAPTURE request per invocation and no automatic retry. A working physical indicator and a verified
++board are prerequisites this software cannot check.
+ """
+ from __future__ import annotations
+ import argparse
+ import json
+ import os
+ import select
+-import struct
+ import termios
+ import time
+ from pathlib import Path
+ from microscan_usb_packet import HEADER, MAGIC, MAX_FRAME_BYTES, FrameError, decode_packet
+ 
+-BAUDS = {9600: termios.B9600, 115200: termios.B115200}
++BAUDS = {9600: termios.B9600, 115200: termios.B115200, 230400: termios.B230400,
++         460800: termios.B460800, 921600: termios.B921600}
+ MAX_PREFIX = 4096
++READY_BANNER = b'MICROSCAN_VISIBLE_USB_READY'
++ERROR_PREFIX = b'ERROR '
++
+ 
+ class CaptureError(RuntimeError):
+     pass
+ 
+ 
++def transfer_seconds(jpeg_bytes: int, baud: int) -> float:
++    """Lower bound for one MSJ1 packet on an 8N1 UART: 10 line bits per byte, header included."""
++    if baud <= 0 or jpeg_bytes < 0:
++        raise ValueError('bad arguments')
++    return (jpeg_bytes + HEADER.size) * 10.0 / baud
++
++
+ def set_serial_raw(fd: int, baud: int) -> None:
+     if baud not in BAUDS:
+-        raise CaptureError('Only 9600 or 115200 baud are supported')
++        raise CaptureError('Unsupported baud; choose one of ' + ', '.join(map(str, sorted(BAUDS))))
+     attrs = termios.tcgetattr(fd)
+     attrs[0] = 0  # iflag
+     attrs[1] = 0  # oflag
+-    attrs[2] = termios.CS8 | termios.CLOCAL | termios.CREAD
++    attrs[2] = termios.CS8 | termios.CLOCAL | termios.CREAD  # no HUPCL, no flow control
+     attrs[3] = 0  # lflag
+     attrs[4] = BAUDS[baud]
+     attrs[5] = BAUDS[baud]
+@@ -37,6 +53,47 @@
+     termios.tcsetattr(fd, termios.TCSANOW, attrs)
+ 
+ 
++def _error_line(buf: bytes):
++    """Return a complete firmware 'ERROR ...' text line found in pre-packet bytes, else None."""
++    start = 0
++    while True:
++        pos = buf.find(ERROR_PREFIX, start)
++        if pos < 0:
++            return None
++        if pos == 0 or buf[pos - 1:pos] in (b'\n', b'\r'):
++            end = buf.find(b'\n', pos)
++            if end >= 0:
++                return buf[pos:end].strip().decode('ascii', 'replace')[:200]
++            return None
++        start = pos + 1
++
++
++def wait_for_ready(fd: int, timeout: float) -> bool:
++    """Consume boot text until the READY banner. False if it never arrives (board already idle)."""
++    if not (0 < timeout <= 60):
++        raise ValueError('Ready timeout out of range')
++    deadline = time.monotonic() + timeout
++    seen = bytearray()
++    while True:
++        remaining = deadline - time.monotonic()
++        if remaining <= 0:
++            return False
++        ready, _, _ = select.select([fd], [], [], min(remaining, 0.25))
++        if not ready:
++            continue
++        chunk = os.read(fd, 4096)
++        if not chunk:
++            continue
++        seen.extend(chunk)
++        if READY_BANNER in seen:
++            return True
++        err = _error_line(bytes(seen))
++        if err:
++            raise CaptureError(f'Camera reported at boot: {err}')
++        if len(seen) > 65536:
++            del seen[:-len(READY_BANNER)]
++
++
+ def read_one_packet(fd: int, timeout: float = 180, cap_bytes: int = MAX_FRAME_BYTES) -> bytes:
+     """Read MSJ1 packet, ignoring bounded serial boot messages and false magic."""
+     if not (0 < timeout <= 300):
+@@ -66,10 +123,16 @@
+             while True:
+                 pos = buf.find(MAGIC)
+                 if pos < 0:
++                    err = _error_line(bytes(buf))
++                    if err:
++                        raise CaptureError(f'Camera refused or failed: {err}')
+                     if len(buf) > MAX_PREFIX:
+                         del buf[:-3]  # keep possible partial magic suffix
+                     break
+                 if pos:
++                    err = _error_line(bytes(buf[:pos]))
++                    if err:
++                        raise CaptureError(f'Camera refused or failed: {err}')
+                     del buf[:pos]
+                 if len(buf) < HEADER.size:
+                     break
+@@ -84,17 +147,24 @@
+             raise CaptureError('Serial buffer exceeded hard cap')
+ 
+ 
+-def capture(port: str, jpeg_path: Path, timeout: float = 180, baud: int = 115200):
++def capture(port: str, jpeg_path: Path, timeout: float = 180, baud: int = 115200, wait_ready: float = 0):
+     fd = os.open(port, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+     try:
+         set_serial_raw(fd, baud)
+-        # Explicit foreground request; no repeated capture on failure.
++        banner = None
++        if wait_ready:
++            banner = wait_for_ready(fd, wait_ready)
++        # Explicit foreground request; exactly one, no repeated capture on failure.
+         os.write(fd, b'CAPTURE\n')
++        started = time.monotonic()
+         packet = read_one_packet(fd, timeout)
++        elapsed = time.monotonic() - started
+         meta, jpeg = decode_packet(packet)
+         jpeg_path.parent.mkdir(parents=True, exist_ok=True)
+         jpeg_path.write_bytes(jpeg)
+-        return {'path': str(jpeg_path), **meta, 'source': 'operator_requested_serial_capture'}
++        return {'path': str(jpeg_path), **meta, 'source': 'operator_requested_serial_capture', 'baud': baud,
++                'ready_banner_seen': banner, 'seconds': round(elapsed, 3),
++                'uart_lower_bound_seconds': round(transfer_seconds(len(jpeg), baud), 3)}
+     finally:
+         os.close(fd)
+ 
+@@ -104,15 +174,19 @@
+     parser.add_argument('--port', required=True, help='Serial port from a physically verified open camera')
+     parser.add_argument('--output', required=True, type=Path)
+     parser.add_argument('--timeout', type=float, default=180)
+-    parser.add_argument('--baud', type=int, choices=sorted(BAUDS), default=115200)
++    parser.add_argument('--baud', type=int, choices=sorted(BAUDS), default=115200,
++                        help='Must equal MICROSCAN_BAUD compiled into the firmware')
++    parser.add_argument('--wait-ready', type=float, default=0, metavar='SECONDS',
++                        help='Wait up to SECONDS for the firmware READY banner before the single request (try 8)')
+     parser.add_argument('--indicator-confirmed', action='store_true', help='Operator has confirmed an obvious physical recording indicator')
+     args = parser.parse_args()
+     if not args.indicator_confirmed:
+         parser.error('Capture disabled: --indicator-confirmed is required after physical verification')
+     try:
+-        print(json.dumps(capture(args.port, args.output, args.timeout, args.baud), indent=2))
+-    except (CaptureError, OSError, FrameError) as exc:
++        print(json.dumps(capture(args.port, args.output, args.timeout, args.baud, args.wait_ready), indent=2))
++    except (CaptureError, OSError, FrameError, ValueError) as exc:
+         parser.exit(2, f'FAIL: {exc}\n')
+ 
++
+ if __name__ == '__main__':
+     main()

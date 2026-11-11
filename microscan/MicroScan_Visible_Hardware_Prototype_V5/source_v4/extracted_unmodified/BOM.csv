@@ -1,0 +1,10 @@
+Part,Qty,Source_URL,Observed_price_EGP,Price_type,Fit_status,Important_note
+RHYX-M21-45 ESP32-CAM integrated Micro USB and OV2640,1,https://mostelectronic.com/shop/arduino-development-boards/esp32-cam-ov2640-ch340-camera-micro-usb/,499,Advertised web listing,PCB revision unmeasured,"Seller dimensions 40x27x12 mm; package includes one board and one camera; no physical stock check"
+USB-A to Micro-USB data cable 1m,1,https://mostelectronic.com/shop/wires-crocodiles/usb-a-to-micro-usb-data-cable-1m/,45,Advertised web listing,Compatible connector assumed,"Use only if no suitable owned data cable; actual port orientation unverified"
+3D printed PETG carrier 84x58mm,1,Local fabrication quote needed,UNKNOWN,Unpriced,CAD exported,"Exact print fee and skin comfort unknown; PETG recommended rather than PLA for heat resilience"
+Printed adjustable edge retainers PETG,4,Included in CAD package,UNKNOWN,Printer material fee not quoted,Prototype dimensions only,"Four are modelled; verify PCB edge free of components before clamping"
+M3x16 nylon fasteners plus nylon nuts,4 sets,https://www.ram-e-shop.com/shop/category/pcb-holders-121,UNKNOWN,Unpriced/stock unverified,Not fit-tested,"Preferred insulating fastener set; RAM's 45 EGP 100-piece M3x16 listing appears metal, not verified nylon; do not substitute without verifying head clearance"
+20mm hook-and-loop wrist strap,1,Local supplier quote needed,UNKNOWN,Unpriced,Not physically tested,"Clearly visible removable strap, fit through nominal 4x22mm slots"
+Thin nonconductive backing pad,1,Local supplier quote needed,UNKNOWN,Unpriced,Not physically tested,"Skin comfort and insulating cover; do not encapsulate electronics"
+Existing certified regulated 5V USB power bank,1,Owner-provided only if available,UNKNOWN,Owned not confirmed,Unknown,"No loose Li-ion packs or improvised charging circuit; source rating >=1A recommended, current must be tested"
+Firmware and verified camera configuration,1,https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer,0,Reference source only,Not flashed,"Board-specific pin map and serial boot procedure not verified"

@@ -1,0 +1,318 @@
+--- source_v4/extracted_unmodified/cad/build_hardware_v2.py	2026-11-10 00:00:00.000000000 +0000
++++ cad/build_hardware_v5.py	2026-11-11 17:35:09.808802254 +0000
+@@ -1,70 +1,250 @@
+-"""Open, identifiable MicroScan document-camera hardware carrier V2.
++"""MicroScan V5 open, plainly identifiable document-camera wrist-top carrier.
+ 
+-No button disguise. No hidden wiring. Hardware has NOT been measured or assembled.
+-Only intended as a reversible mechanical CAD prototype for a visible camera board.
+-Requires cadquery 2.x.
++Parametric CadQuery source. Importing this module builds solids but writes nothing;
++run it as a script to export STEP/STL into this directory.
++
++WHY V5 EXISTS (see docs/V5_CHANGELOG_AND_DIFF.md):
++  The retailer's own product photographs for SKU ME-31692 show a single-PCB board
++  silk-marked HW-818 with (a) male pin headers factory-soldered pointing AWAY from
++  the camera face, (b) the ESP-32S module, Micro-USB receptacle and RST/FLASH buttons
++  on the face OPPOSITE the camera, (c) a ~1.8:1 outline. V2 assumed a 40x27 board on
++  3.5 mm pads with the USB plug pointing at an M3 pillar / strap slot. That cannot
++  seat a pins-down board and leaves no room for a USB plug. V5 keeps the 84x58 mm
++  plate and the adjustable-retainer idea, rotates the board along the 84 mm axis and
++  seats the header pins in blind troughs.
++
++EVERY BOARD DIMENSION BELOW IS UNVERIFIED until a physical unit is measured.
++Evidence class is recorded per parameter:
++  [3P]    third-party seller datasheet for the HW-818 model (makerlab.ph listing)
++  [PHOTO] scaled from the Most Electronics listing photograph (+-1 mm at best)
++  [STD]   generic part standard (2.54 mm header, Micro-B plug), not this unit
++  [DESIGN] a V5 design choice
++No button disguise, no hidden wiring, no cover over the lens or the capture LED.
++Requires cadquery 2.x and the 'Liberation Sans' font for the engraved label.
+ """
+ from pathlib import Path
+ import cadquery as cq
+ 
+-OUT=Path(__file__).resolve().parent
+-PCB_X=40.0; PCB_Y=27.0; PCB_THICKNESS_ASSUMED=1.6
+-BOARD_CENTER_Y=4.0
+-PLATE_X=84.0; PLATE_Y=58.0; PLATE_Z=3.2
+-PCB_LIFT=3.5  # assumed clearance to underside components
+-PILLAR_H=PCB_LIFT+PCB_THICKNESS_ASSUMED
+-ANCHOR_X=26.0
+-ANCHOR_YS=(-7.0,15.0)
+-HOLE_DIAM=3.3
+-STRAP_SLOT_X=4.0; STRAP_SLOT_Y=22.0
+-
+-# Board carrier (open, fully visible, clearly identified as CAMERA)
+-base=cq.Workplane('XY').rect(PLATE_X,PLATE_Y).extrude(PLATE_Z).edges('|Z').fillet(5.0)
+-for x in (-35,35):
+-    base=base.cut(cq.Workplane('XY').box(STRAP_SLOT_X,STRAP_SLOT_Y,PLATE_Z+2,centered=(True,True,False)).translate((x,4,-1)))
+-
+-# Spaced support pads: footprints MUST be verified against actual PCB solder/component side.
+-for x in (-17,17):
+-    for y in (BOARD_CENTER_Y-10,BOARD_CENTER_Y+10):
+-        base=base.union(cq.Workplane('XY').box(4.0,4.0,PCB_LIFT,centered=(True,True,False)).translate((x,y,PLATE_Z)))
+-
+-# Four collar mounts for separate non-conductive clips, not PCB hole assumptions.
+-for x in (-ANCHOR_X,ANCHOR_X):
+-    for y in ANCHOR_YS:
+-        pillar=cq.Workplane('XY').circle(3.0).extrude(PILLAR_H).translate((x,y,PLATE_Z))
+-        base=base.union(pillar)
+-        base=base.cut(cq.Workplane('XY').circle(HOLE_DIAM/2).extrude(PLATE_Z+PILLAR_H+1).translate((x,y,-0.5)))
+-        # Recess for a low-profile nylon M3 bolt head on skin-facing underside.
+-        # Actual head diameter and height must be verified before choosing hardware.
+-        base=base.cut(cq.Workplane('XY').circle(3.0).extrude(1.8).translate((x,y,0)))
+-
+-# Two optional cable tie openings near top edge: cable itself stays fully exposed.
+-for x in (-5.5,5.5):
+-    base=base.cut(cq.Workplane('XY').box(2.7,3.4,PLATE_Z+2,centered=(True,True,False)).translate((x,23,-1)))
+-
+-# Label leaves no doubt this is an imaging accessory.
+-letter=cq.Workplane('XY').text('CAMERA',7.2,0.8,font='Liberation Sans',kind='bold',combine=True).translate((0,-21.8,PLATE_Z-0.79))
+-base=base.cut(letter)
+-
+-# Symmetrical side retaining pads: top-only board-edge contact, no case over optics.
+-# The user selects two or four clips AFTER physical inspection of the PCB edges.
+-# Slot allows a few mm of location adjustment around printed pillar; clip is not a rated fastener.
+-clip=cq.Workplane('XY').box(14.0,6.0,2.8,centered=(True,True,False)).translate((-0.5,0,0))
+-clip=clip.edges('|Z').fillet(1.0)
+-# Longitudinal mounting slot: 5.0mm center-to-center + 3.3mm diameter => 8.3mm overall.
+-slot=cq.Workplane('XY').slot2D(8.3,3.3,angle=0).extrude(5).translate((0,0,-1))
+-clip=clip.cut(slot)
+-# Tiny outward-facing CAMERA label remains on the main carrier, not the clip.
+-
+-# A dimensional gauge representing nominal PCB rectangle, not a real PCB physical model.
+-gauge=cq.Workplane('XY').box(PCB_X,PCB_Y,PCB_THICKNESS_ASSUMED,centered=(True,True,False)).translate((0,BOARD_CENTER_Y,0))
+-
+-solids={'Open_Camera_Carrier_V2':base,'Adjustable_Edge_Retainer_V2':clip,'Nominal_PCB_Gauge_DO_NOT_MOUNT':gauge}
+-if __name__=='__main__':
+-    for name,obj in solids.items():
+-        cq.exporters.export(obj,str(OUT/(name+'.step')))
+-        cq.exporters.export(obj,str(OUT/(name+'.stl')),tolerance=0.08,angularTolerance=0.1)
+-    print('EXPORTED', ', '.join(solids), flush=True)
+-    for name,obj in solids.items():
+-        bb=obj.val().BoundingBox()
+-        print(name,'bounds mm',(round(bb.xlen,2),round(bb.ylen,2),round(bb.zlen,2)),'volume mm3',round(obj.val().Volume(),2))
++OUT = Path(__file__).resolve().parent
++
++# ---------------------------------------------------------------- board (UNVERIFIED)
++PCB_L = 48.5            # [3P] HW-818 "27*48.5*4.5mm"; photo aspect 1.81 agrees, 40x27 does not
++PCB_W = 27.0            # [3P]
++PCB_T = 1.6             # [STD] ASSUMED; measure. Thinner board -> retainers need a shim
++HDR_ROW_SPACING = 22.86 # [STD] 0.9 in, as on AI-Thinker ESP32-CAM; MEASURE before printing
++HDR_PINS = 8            # [PHOTO] 8 pins per side, silk 5V..IO4 / 3V3..GND
++HDR_PITCH = 2.54        # [STD]
++HDR_PIN1_FROM_ANT_END = 17.6   # [PHOTO] centre of first pin from antenna-end edge, +-1 mm
++HDR_BODY_H = 2.54       # [STD] plastic spacer of a male header
++HDR_PIN_BELOW_BODY = 6.1       # [STD] mating length of a standard 11.6 mm header pin
++HDR_PIN_SQ = 0.64       # [STD]
++USB_PLUG_L = 19.0       # [STD] typical Micro-B overmold length; cables vary 17-23
++USB_PLUG_W = 11.0       # [STD]
++USB_PLUG_H = 8.0        # [STD] worst-case overmold thickness
++USB_CENTRE_BELOW_PCB = 1.35    # [STD] receptacle mounted on the under (module) face
++MODULE_L, MODULE_W, MODULE_H = 25.5, 18.0, 3.2   # [STD] ESP-32S module with can, under face
++CAMERA_STACK_ABOVE_PCB = 6.5   # [PHOTO/STD] SD slot + camera head, estimate only
++
++# ---------------------------------------------------------------- carrier (DESIGN)
++PLATE_X, PLATE_Y, PLATE_Z = 84.0, 58.0, 3.2     # footprint retained from V2
++PLATE_FILLET = 5.0
++ANT_END_X = -40.0       # board antenna-end edge; USB end lands at +8.5
++BOARD_CY = 0.0
++USB_END_X = ANT_END_X + PCB_L
++BOARD_CX = ANT_END_X + PCB_L / 2
++
++STRAP_SLOT_X, STRAP_SLOT_Y = 22.0, 4.0          # for one 20 mm hook-and-loop strap
++STRAP_SLOT_CY = 24.5    # slots now on the two LONG edges; strap wraps across the 58 mm axis
++
++RAIL_H = 5.4            # header plastic rests on rail tops
++RAIL_W = 4.6
++RAIL_END_MARGIN = 4.0   # rail extends this far beyond the end pin centres
++TROUGH_W = 1.5          # 0.64 pin + 0.43 float each side
++TROUGH_END_CLEAR = 2.0  # along the row, each end (absorbs the +-1 mm photo uncertainty)
++TROUGH_INTO_PLATE = 1.4 # blind; leaves PLATE_Z-1.4 = 1.8 mm solid floor toward the skin
++
++PCB_UNDER_Z = PLATE_Z + RAIL_H + HDR_BODY_H     # 11.14
++PCB_TOP_Z = PCB_UNDER_Z + PCB_T                 # 12.74
++
++PILLAR_D = 7.0
++PILLAR_LOCAL_X = (19.0, 33.5)   # along the header region: edge strip there is only solder joints
++PILLAR_CY = 17.5
++BOLT_CLEAR_D = 3.4      # M3 + 0.4 for FDM
++HEAD_POCKET_D = 6.6     # pan head dk<=6.0 + 0.6
++HEAD_POCKET_DEPTH = 2.6 # pan head k<=2.4 + 0.2 -> head sits below the skin-side face
++PILLAR_TOP_Z = PCB_TOP_Z
++
++CLIP_L, CLIP_W, CLIP_T = 14.0, 6.0, 3.0
++CLIP_SLOT_L, CLIP_SLOT_W = 8.3, 3.4
++CLIP_BODY_SHIFT_OUT = 1.5   # body centre shifted AWAY from the board so mid-slot gives 1.5 mm edge overlap
++CLIP_NOMINAL_SHIFT = -0.5    # recommended setting: 1.0 mm overlap, clear of the header solder tails
++HDR_TAIL_ABOVE_PCB = 1.4     # [STD] 3.0 mm solder tail minus 1.6 mm PCB
++
++SADDLE_X = 37.0         # cable/boot support + tie point, outboard of a 19 mm plug
++SADDLE_LEN_X, SADDLE_W_Y = 4.0, 9.0
++CABLE_CENTRE_Z = PCB_UNDER_Z - USB_CENTRE_BELOW_PCB
++SADDLE_TOP_Z = CABLE_CENTRE_Z - 0.8
++SADDLE_V_DEPTH = 3.0
++TIE_WIN_X, TIE_WIN_Y = 3.6, 2.7
++TIE_WIN_CY = 6.4
++TIE_CHANNEL_DEPTH = 1.2 # tie lies flush in the skin-side face
++
++LABEL = 'CAMERA'
++LABEL_SIZE = 5.2
++LABEL_DEPTH = 0.8
++LABEL_CX, LABEL_CY = 25.0, 18.5
++
++
++def pin_xs():
++    x1 = ANT_END_X + HDR_PIN1_FROM_ANT_END
++    return [x1 + i * HDR_PITCH for i in range(HDR_PINS)]
++
++
++def pillar_xy():
++    return [(ANT_END_X + lx, s * PILLAR_CY) for lx in PILLAR_LOCAL_X for s in (-1, 1)]
++
++
++def box(lx, ly, lz, cx, cy, z0):
++    return cq.Workplane('XY').box(lx, ly, lz, centered=(True, True, False)).translate((cx, cy, z0))
++
++
++def build_carrier():
++    xs = pin_xs()
++    row_cx = (xs[0] + xs[-1]) / 2
++    row_len = xs[-1] - xs[0]
++    base = cq.Workplane('XY').rect(PLATE_X, PLATE_Y).extrude(PLATE_Z).edges('|Z').fillet(PLATE_FILLET)
++    # strap slots on the long edges
++    for s in (-1, 1):
++        base = base.cut(box(STRAP_SLOT_X, STRAP_SLOT_Y, PLATE_Z + 2, 0, s * STRAP_SLOT_CY, -1))
++    # header rails with blind pin troughs
++    rail_len = row_len + 2 * RAIL_END_MARGIN
++    for s in (-1, 1):
++        y = BOARD_CY + s * HDR_ROW_SPACING / 2
++        base = base.union(box(rail_len, RAIL_W, RAIL_H, row_cx, y, PLATE_Z))
++    # retainer pillars, webbed to the rails
++    for (x, y) in pillar_xy():
++        s = 1 if y > 0 else -1
++        base = base.union(cq.Workplane('XY').circle(PILLAR_D / 2).extrude(PILLAR_TOP_Z - PLATE_Z).translate((x, y, PLATE_Z)))
++        rail_outer = BOARD_CY + s * (HDR_ROW_SPACING / 2 + RAIL_W / 2)
++        web_len = abs(y - rail_outer)
++        base = base.union(box(4.0, web_len, RAIL_H, x, (y + rail_outer) / 2, PLATE_Z))
++    # cable saddle with V groove
++    saddle = box(SADDLE_LEN_X, SADDLE_W_Y, SADDLE_TOP_Z - PLATE_Z, SADDLE_X, 0, PLATE_Z)
++    vee = (cq.Workplane('YZ').polyline([(-SADDLE_V_DEPTH, SADDLE_TOP_Z + 0.01), (0, SADDLE_TOP_Z - SADDLE_V_DEPTH),
++                                        (SADDLE_V_DEPTH, SADDLE_TOP_Z + 0.01)]).close()
++           .extrude(SADDLE_LEN_X + 2).translate((SADDLE_X - SADDLE_LEN_X / 2 - 1, 0, 0)))
++    base = base.union(saddle.cut(vee))
++    # --- cuts after all unions
++    for s in (-1, 1):
++        y = BOARD_CY + s * HDR_ROW_SPACING / 2
++        depth = RAIL_H + TROUGH_INTO_PLATE
++        base = base.cut(box(row_len + HDR_PIN_SQ + 2 * TROUGH_END_CLEAR, TROUGH_W, depth + 0.01,
++                            row_cx, y, PLATE_Z - TROUGH_INTO_PLATE))
++    for (x, y) in pillar_xy():
++        base = base.cut(cq.Workplane('XY').circle(BOLT_CLEAR_D / 2).extrude(PILLAR_TOP_Z + 2).translate((x, y, -1)))
++        base = base.cut(cq.Workplane('XY').circle(HEAD_POCKET_D / 2).extrude(HEAD_POCKET_DEPTH).translate((x, y, 0)))
++    for s in (-1, 1):
++        base = base.cut(box(TIE_WIN_X, TIE_WIN_Y, PLATE_Z + 2, SADDLE_X, s * TIE_WIN_CY, -1))
++    base = base.cut(box(TIE_WIN_X, 2 * TIE_WIN_CY + TIE_WIN_Y, TIE_CHANNEL_DEPTH, SADDLE_X, 0, 0))
++    # engraved identification on both sides of the cable run
++    for s in (-1, 1):
++        txt = (cq.Workplane('XY').text(LABEL, LABEL_SIZE, LABEL_DEPTH + 0.01, font='Liberation Sans', kind='bold',
++                                       combine=True).translate((LABEL_CX, s * LABEL_CY, PLATE_Z - LABEL_DEPTH)))
++        base = base.cut(txt)
++    return base
++
++
++def build_clip():
++    clip = cq.Workplane('XY').box(CLIP_L, CLIP_W, CLIP_T, centered=(True, True, False)).translate((CLIP_BODY_SHIFT_OUT, 0, 0))
++    clip = clip.edges('|Z').fillet(1.0)
++    slot = cq.Workplane('XY').slot2D(CLIP_SLOT_L, CLIP_SLOT_W, angle=0).extrude(CLIP_T + 2).translate((0, 0, -1))
++    return clip.cut(slot)
++
++
++def build_gauge():
++    """Flat coupon of the NOMINAL outline with pin holes. Lay the real board on it to compare."""
++    g = cq.Workplane('XY').box(PCB_L, PCB_W, PCB_T, centered=(True, True, False)).translate((BOARD_CX, BOARD_CY, 0))
++    for x in pin_xs():
++        for s in (-1, 1):
++            g = g.cut(cq.Workplane('XY').circle(0.6).extrude(PCB_T + 2).translate((x, BOARD_CY + s * HDR_ROW_SPACING / 2, -1)))
++    # USB-end notch so orientation cannot be confused
++    g = g.cut(box(1.5, 8.0, PCB_T + 2, USB_END_X - 0.75, BOARD_CY, -1))
++    return g
++
++
++def build_board_envelope():
++    """NOMINAL keep-out solids for interference checks only. Not a model of a real unit."""
++    xs = pin_xs()
++    row_cx = (xs[0] + xs[-1]) / 2
++    parts = {}
++    parts['pcb'] = box(PCB_L, PCB_W, PCB_T, BOARD_CX, BOARD_CY, PCB_UNDER_Z)
++    hdr = None
++    pins = None
++    tails = None
++    for s in (-1, 1):
++        y = BOARD_CY + s * HDR_ROW_SPACING / 2
++        b = box(HDR_PINS * HDR_PITCH, HDR_BODY_H, HDR_BODY_H, row_cx, y, PCB_UNDER_Z - HDR_BODY_H)
++        hdr = b if hdr is None else hdr.union(b)
++        for x in xs:
++            p = box(HDR_PIN_SQ, HDR_PIN_SQ, HDR_PIN_BELOW_BODY, x, y, PCB_UNDER_Z - HDR_BODY_H - HDR_PIN_BELOW_BODY)
++            pins = p if pins is None else pins.union(p)
++            t = box(HDR_PIN_SQ, HDR_PIN_SQ, HDR_TAIL_ABOVE_PCB, x, y, PCB_TOP_Z)
++            tails = t if tails is None else tails.union(t)
++    parts['header_bodies'] = hdr
++    parts['header_pins'] = pins
++    parts['solder_tails'] = tails
++    parts['module'] = box(MODULE_L, MODULE_W, MODULE_H, ANT_END_X + MODULE_L / 2, BOARD_CY, PCB_UNDER_Z - MODULE_H)
++    parts['usb_plug'] = box(USB_PLUG_L, USB_PLUG_W, USB_PLUG_H, USB_END_X + USB_PLUG_L / 2 - 1.0, BOARD_CY,
++                            CABLE_CENTRE_Z - USB_PLUG_H / 2)
++    parts['camera_stack'] = box(20.0, 16.0, CAMERA_STACK_ABOVE_PCB, ANT_END_X + 17.0, BOARD_CY, PCB_TOP_Z)
++    return parts
++
++
++def clip_overlap(shift):
++    """Plan overlap of a retainer onto the nominal PCB long edge for a given slot shift."""
++    tip = PILLAR_CY - (CLIP_L / 2 - CLIP_BODY_SHIFT_OUT) - shift
++    return PCB_W / 2 - tip
++
++
++def placed_clips(shift=CLIP_NOMINAL_SHIFT):
++    """Clips at their pillars, long axis across the board (Y). shift>0 slides toward the board."""
++    out = []
++    for (x, y) in pillar_xy():
++        s = 1 if y > 0 else -1
++        c = build_clip().rotate((0, 0, 0), (0, 0, 1), 90 if s > 0 else -90)
++        # after rotation local -X points toward the board on both sides
++        out.append(c.translate((x, y - s * shift, PILLAR_TOP_Z)))
++    return out
++
++
++carrier = build_carrier()
++clip = build_clip()
++gauge = build_gauge()
++envelope = build_board_envelope()
++solids = {'Open_Camera_Carrier_V5': carrier,
++          'Adjustable_Edge_Retainer_V5': clip,
++          'HW818_Nominal_PCB_Gauge_DO_NOT_MOUNT': gauge}
++
++
++def build_assembly():
++    asm = cq.Assembly(name='MicroScan_V5_nominal_assembly')
++    asm.add(carrier, name='carrier', color=cq.Color(0.80, 0.90, 0.92))
++    for i, c in enumerate(placed_clips()):
++        asm.add(c, name=f'retainer_{i+1}', color=cq.Color(0.0, 0.5, 0.47))
++    colors = {'pcb': (0.1, 0.1, 0.1), 'header_bodies': (0.2, 0.2, 0.2), 'header_pins': (0.8, 0.7, 0.2),
++              'module': (0.7, 0.7, 0.7), 'solder_tails': (0.8, 0.7, 0.2), 'usb_plug': (0.3, 0.3, 0.3), 'camera_stack': (0.5, 0.5, 0.55)}
++    for k, v in envelope.items():
++        asm.add(v, name='NOMINAL_' + k, color=cq.Color(*colors[k]))
++    return asm
++
++
++if __name__ == '__main__':
++    for name, obj in solids.items():
++        cq.exporters.export(obj, str(OUT / (name + '.step')))
++        cq.exporters.export(obj, str(OUT / (name + '.stl')), tolerance=0.05, angularTolerance=0.1)
++    build_assembly().save(str(OUT / 'MicroScan_V5_Nominal_Assembly_REFERENCE_ONLY.step'))
++    print('EXPORTED', ', '.join(solids), '+ nominal assembly', flush=True)
++    for name, obj in solids.items():
++        bb = obj.val().BoundingBox()
++        print(name, 'bounds mm', (round(bb.xlen, 2), round(bb.ylen, 2), round(bb.zlen, 2)), 'volume mm3',
++              round(obj.val().Volume(), 2))
